@@ -36,7 +36,7 @@ namespace Kethane.PartModules
 
         private TimedMovingAverage output = new TimedMovingAverage(3f);
         private TimedMovingAverage fanSpeed = new TimedMovingAverage(1f);
-        private Func<float, float> logistic = x => (1 / ((float)Math.Exp(15f * x - 10.5f) + 1));
+        private Func<double, double> logistic = x => (1 / (Math.Exp(15 * x - 10.5) + 1));
 
         [KSPEvent(guiActive = true, guiName = "Enable Generator", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void Enable()
@@ -102,8 +102,9 @@ namespace Kethane.PartModules
 
         public override void OnFixedUpdate()
         {
-            var resources = part.GetConnectedResources("ElectricCharge");
-            var demand = Enabled ? logistic((float)(resources.Sum(r => r.amount) / resources.Sum(r => r.maxAmount))) : 0;
+			double amount, maxAmount;
+			part.GetConnectedResourceTotals("ElectricCharge", out amount, out maxAmount);
+            var demand = (float)(Enabled ? logistic(amount / maxAmount) : 0);
 
             if (demand < 0.1f) { demand = 0; }
 

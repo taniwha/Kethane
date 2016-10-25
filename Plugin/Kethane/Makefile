@@ -78,7 +78,6 @@ bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt Resources/AlphaUnlitVertexColore
 	${GMCS} ${GMCSFLAGS} -t:library -lib:"${MANAGED}" \
 		-r:Assembly-CSharp,Assembly-CSharp-firstpass \
 		-r:UnityEngine,UnityEngine.UI \
-		-r:KSPUtil \
 		-lib:../../../GeodesicGrid/bin \
 		-r:GeodesicGrid \
 		-resource:Kethane-LICENSE.txt,Kethane.Kethane-LICENSE.txt \

@@ -154,7 +154,7 @@ namespace Kethane.PartModules
                     name = name.Substring(0, name.Length - 1);
                 }
                 var rate = Misc.Parse(entry.value, 0.0);
-                if (PartResourceLibrary.Instance.resourceDefinitions.Any(d => d.name == name) && rate > 0)
+                if (PartResourceLibrary.Instance.GetDefinition(name) != null && rate > 0)
                 {
                     yield return new ResourceRate(name, rate, optional);
                 }
@@ -181,13 +181,20 @@ namespace Kethane.PartModules
             Events["DeactivateConverter"].active = IsEnabled;
         }
 
+		double ResouceCapacity(ResourceRate r)
+		{
+			double amount, maxAmount;
+			part.GetConnectedResourceTotals(r.Resource, out amount, out maxAmount, r.Rate > 0);
+			return amount;
+		}
+
         public override void OnFixedUpdate()
         {
             resourceActivity.Clear();
             if (!IsEnabled && !AlwaysActive) { return; }
 
             var rates = outputRates.Select(r => r * -1).Concat(inputRates).Select(r => r * TimeWarp.fixedDeltaTime).ToArray();
-            var ratio = rates.Where(r => !r.Optional).Select(r => this.part.GetConnectedResources(r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Where(r => r < 1).DefaultIfEmpty(1).Min();
+            var ratio = rates.Where(r => !r.Optional).Select(r => ResouceCapacity(r) / Math.Abs(r.Rate)).Where(r => r < 1).DefaultIfEmpty(1).Min();
 
             var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
             if (ratio > 0 && heatsink != null)
