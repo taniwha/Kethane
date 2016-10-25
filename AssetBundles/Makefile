@@ -11,14 +11,9 @@ GIT		:= git
 TAR		:= tar
 ZIP		:= zip
 
-.PHONY: all clean info install
+all:
 
-SUBDIRS=AssetBundles Parts Plugin/Kethane
-
-all clean install:
-	@for dir in ${SUBDIRS}; do \
-		make -C $$dir $@ || exit 1; \
-	done
+clean:
 
 info:
 	@echo "Extraplanetary Launchpads Build Information"
@@ -29,3 +24,9 @@ info:
 	@echo "    zip:      ${ZIP}"
 	@echo "    KSP Data: ${KSPDIR}"
 	@echo "    Plugin:   ${PLUGINDIR}"
+
+install: all
+	mkdir -p "${KGAMEDATA}"
+	cp kethane-*.ksp "${KGAMEDATA}"
+
+.PHONY: all clean info install
