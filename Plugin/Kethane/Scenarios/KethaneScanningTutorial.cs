@@ -190,7 +190,7 @@ namespace Kethane.Scenarios
 			surfaceCoverageLabel = new DialogGUILabel("");
 			surfaceCoverageLabel.GetString = () =>
 			{
-				return String.Format("<b>Surface Coverage: {0:P2}</b>", surfaceCoverage);
+				return String.Format("<b><color=#14b01a>Surface Coverage: {0:P2}</color></b>", surfaceCoverage);
 			};
 
             timewarp.SetDialog(new MultiOptionDialog("", "", null, dRect,
