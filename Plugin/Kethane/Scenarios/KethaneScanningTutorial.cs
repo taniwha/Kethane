@@ -3,10 +3,33 @@ using Kethane.PartModules;
 using Kethane.UserInterface;
 using System;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace Kethane.Scenarios
 {
+	public static class TutorialPageExtension
+	{
+		static FieldInfo dialogField = FindDialogField();
+		
+		static FieldInfo FindDialogField()
+		{
+			var mask = BindingFlags.NonPublic | BindingFlags.Instance;
+			FieldInfo[] fields = typeof (TutorialScenario.TutorialPage).GetFields(mask);
+			foreach (var f in fields) {
+				if (f.FieldType == typeof (MultiOptionDialog)) {
+					return f;
+				}
+			}
+			return null;
+		}
+
+		public static MultiOptionDialog SetDialog(this TutorialScenario.TutorialPage page, MultiOptionDialog dialog)
+		{
+			dialogField.SetValue(page, dialog);
+			return dialog;
+		}
+	}
     public class KethaneScanningTutorial : TutorialScenario
     {
         protected override void OnAssetSetup()
@@ -17,7 +40,7 @@ namespace Kethane.Scenarios
         private const string lockName = "KethaneScanningTutorialLock";
 
         private float surfaceCoverage = 0;
-        private GUIStyle boldStyle = null;
+        private DialogGUILabel surfaceCoverageLabel;
 
         protected override void OnTutorialSetup()
         {
@@ -35,12 +58,10 @@ namespace Kethane.Scenarios
                 instructor.StopRepeatingEmote();
             };
 
-            introduction.OnDrawContent = () =>
-            {
-                GUILayout.Label("Hi there! Today we're going to use satellites to scan for Kethane, a valuable resource found all around the Kerbal system. Kethane can be processed into rocket fuel or burned in special engines, but we'll have to find it first.\n\nWe'll be controlling a Mun satellite together from here at KSC. It's been equipped with a Kethane survey unit and solar panels for power. Let's get started!");
-
-                if (GUILayout.Button("Next")) { Tutorial.GoToNextPage(); }
-            };
+			introduction.SetDialog(new MultiOptionDialog("", "", null, dRect,
+														new DialogGUIVerticalLayout(true),
+														new DialogGUILabel("Hi there! Today we're going to use satellites to scan for Kethane, a valuable resource found all around the Kerbal system. Kethane can be processed into rocket fuel or burned in special engines, but we'll have to find it first.\n\nWe'll be controlling a Mun satellite together from here at KSC. It's been equipped with a Kethane survey unit and solar panels for power. Let's get started!", false, true),
+														new DialogGUIButton("Next", delegate { Tutorial.GoToNextPage(); }, true)));
 
             Tutorial.AddPage(introduction);
 
@@ -59,12 +80,10 @@ namespace Kethane.Scenarios
                 instructor.PlayEmote(instructor.anim_idle_lookAround);
             };
 
-            grid.OnDrawContent = () =>
-            {
-                GUILayout.Label("Here we are in the map view. The cellular grid around the Mun will display resource scan data once we've collected it.\n\nYou can hide the grid or switch to other resources (if you have other resource mods installed) using the green window. (It might be hidden under this one.) The grid will appear around whatever planet or moon you're focused on, so you can view scan data from anywhere in the system.\n\nTake a moment to get comfortable with the grid controls and we'll continue when you're ready.");
-
-                if (GUILayout.Button("Next")) { Tutorial.GoToNextPage(); }
-            };
+			grid.SetDialog(new MultiOptionDialog("", "", null, dRect,
+												new DialogGUIVerticalLayout(true),
+												new DialogGUILabel("Here we are in the map view. The cellular grid around the Mun will display resource scan data once we've collected it.\n\nYou can hide the grid or switch to other resources (if you have other resource mods installed) using the green window. (It might be hidden under this one.) The grid will appear around whatever planet or moon you're focused on, so you can view scan data from anywhere in the system.\n\nTake a moment to get comfortable with the grid controls and we'll continue when you're ready."),
+												new DialogGUIButton("Next", delegate { Tutorial.GoToNextPage(); }, true)));
 
             grid.OnLeave = s =>
             {
@@ -86,18 +105,18 @@ namespace Kethane.Scenarios
                 InputLockManager.RemoveControlLock(lockName + "_actions");
             };
 
-            detector.OnDrawContent = () =>
-            {
-                GUILayout.Label("Now, let's get scanning! There's a Kethane detector mounted on the front of the satellite. Right-click it and click \"Activate Detector\" to begin scanning.");
-            };
+			detector.SetDialog(new MultiOptionDialog("", "", null, dRect,
+													new DialogGUIVerticalLayout(true),
+													new DialogGUILabel("Now, let's get scanning! There's a Kethane detector mounted on the front of the satellite. Right-click it and click \"Activate Detector\" to begin scanning.")));
 
-            detector.OnFixedUpdate = () =>
+            detector.SetAdvanceCondition( delegate
             {
                 if (FlightGlobals.ActiveVessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Any(d => d.IsDetecting))
                 {
-                    Tutorial.GoToNextPage();
+                    return true;
                 }
-            };
+				return false;
+            });
 
             detector.OnLeave = s =>
             {
@@ -120,18 +139,14 @@ namespace Kethane.Scenarios
                 InputLockManager.RemoveControlLock(lockName + "_map");
             };
 
-            sounds.OnDrawContent = () =>
-            {
-                GUILayout.Label("Excellent! The detector has turned toward the surface of the Mun, scanning for underground Kethane deposits. You'll occasionally hear beeping or blipping noises as the detector passes over cells on the grid. A louder tone indicates the presence of Kethane directly underneath the satellite.\n\nWhen you're ready, open the map view and we'll take a look at the results.");
-            };
+            sounds.SetDialog(new MultiOptionDialog("", "", null, dRect,
+												   new DialogGUIVerticalLayout(true),
+												   new DialogGUILabel("Excellent! The detector has turned toward the surface of the Mun, scanning for underground Kethane deposits. You'll occasionally hear beeping or blipping noises as the detector passes over cells on the grid. A louder tone indicates the presence of Kethane directly underneath the satellite.\n\nWhen you're ready, open the map view and we'll take a look at the results.")));
 
-            sounds.OnFixedUpdate = () =>
+            sounds.SetAdvanceCondition( delegate
             {
-                if (MapView.MapIsEnabled)
-                {
-                    Tutorial.GoToNextPage();
-                }
-            };
+                return MapView.MapIsEnabled;
+            });
 
             sounds.OnLeave = s =>
             {
@@ -152,12 +167,10 @@ namespace Kethane.Scenarios
                 instructor.PlayEmote(instructor.anim_idle_lookAround);
             };
 
-            colors.OnDrawContent = () =>
-            {
-                GUILayout.Label("Now that we're scanning, you can see that some cells on the grid have changed color. Green cells indicate the presence of Kethane, and light gray cells have been scanned but nothing was found underneath.\n\nFor detailed information, you can hover your mouse over a cell on the grid. When you hover over a resource deposit, the quantity available for mining will also be displayed.");
-
-                if (GUILayout.Button("Next")) { Tutorial.GoToNextPage(); }
-            };
+            colors.SetDialog(new MultiOptionDialog("", "", null, dRect,
+												   new DialogGUIVerticalLayout(true),
+												   new DialogGUILabel("Now that we're scanning, you can see that some cells on the grid have changed color. Green cells indicate the presence of Kethane, and light gray cells have been scanned but nothing was found underneath.\n\nFor detailed information, you can hover your mouse over a cell on the grid. When you hover over a resource deposit, the quantity available for mining will also be displayed."),
+												   new DialogGUIButton("Next", delegate { Tutorial.GoToNextPage(); }, true)));
 
             Tutorial.AddPage(colors);
 
@@ -174,26 +187,26 @@ namespace Kethane.Scenarios
                 InputLockManager.RemoveControlLock(lockName + "_timewarp");
             };
 
-            timewarp.OnDrawContent = () =>
-            {
-                if (boldStyle == null)
-                {
-                    boldStyle = new GUIStyle(GUI.skin.label);
-                    boldStyle.fontStyle = FontStyle.Bold;
-                }
+			surfaceCoverageLabel = new DialogGUILabel("");
+			surfaceCoverageLabel.GetString = () =>
+			{
+				return String.Format("<b>Surface Coverage: {0:P2}</b>", surfaceCoverage);
+			};
 
-                GUILayout.Label("Scanning the Mun is going to take a while at this rate. Luckily, we can send our satellite into time warp to finish the job faster. Note that while warping, the detector will lose some data, but overall it will still work faster.\n\nUse time warp to get 2% of the Mun scanned. Watch your battery levels as you approach the dark side. Detectors use a lot of power!");
-                GUILayout.Label(String.Format("Surface Coverage: {0:P2}", surfaceCoverage), boldStyle);
-            };
+            timewarp.SetDialog(new MultiOptionDialog("", "", null, dRect,
+													 new DialogGUIVerticalLayout(true),
+													 new DialogGUILabel("Scanning the Mun is going to take a while at this rate. Luckily, we can send our satellite into time warp to finish the job faster. Note that while warping, the detector will lose some data, but overall it will still work faster.\n\nUse time warp to get 2% of the Mun scanned. Watch your battery levels as you approach the dark side. Detectors use a lot of power!"),
+													 surfaceCoverageLabel));
 
             timewarp.OnUpdate = () =>
             {
                 surfaceCoverage = (float)Cell.AtLevel(KethaneData.GridLevel).Count(c => KethaneData.Current["Kethane"][FlightGlobals.currentMainBody].IsCellScanned(c)) / Cell.CountAtLevel(KethaneData.GridLevel);
-                if (surfaceCoverage >= 0.02f)
-                {
-                    Tutorial.GoToNextPage();
-                }
             };
+
+            timewarp.SetAdvanceCondition( delegate
+            {
+                return surfaceCoverage >= 0.02f;
+            });
 
             Tutorial.AddPage(timewarp);
 
@@ -210,12 +223,10 @@ namespace Kethane.Scenarios
                 InputLockManager.RemoveControlLock(lockName + "_map");
             };
 
-            conclusion.OnDrawContent = () =>
-            {
-                GUILayout.Label("Nice work! That wraps up our scanning session. Now try building a satellite of your own, or we can move onto using drills to extract Kethane from the ground. Thanks for stopping by!");
-
-                if (GUILayout.Button("Finish")) { GameObject.Destroy(this); }
-            };
+            conclusion.SetDialog(new MultiOptionDialog("", "", null, dRect,
+													   new DialogGUIVerticalLayout(true),
+													   new DialogGUILabel("Nice work! That wraps up our scanning session. Now try building a satellite of your own, or we can move onto using drills to extract Kethane from the ground. Thanks for stopping by!"),
+													   new DialogGUIButton("Finish", delegate { CloseTutorialWindow(); }, true)));
 
             Tutorial.AddPage(conclusion);
 
