@@ -73,16 +73,14 @@ info:
 	@echo "    zip:        ${ZIP}"
 	@echo "    KSP Data:   ${KSPDIR}"
 
-bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt Resources/AlphaUnlitVertexColored.shader
+bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt
 	@mkdir -p bin
 	${GMCS} ${GMCSFLAGS} -t:library -lib:"${MANAGED}" \
 		-r:Assembly-CSharp,Assembly-CSharp-firstpass \
 		-r:UnityEngine,UnityEngine.UI \
-		-r:KSPUtil \
 		-lib:../../../GeodesicGrid/bin \
 		-r:GeodesicGrid \
 		-resource:Kethane-LICENSE.txt,Kethane.Kethane-LICENSE.txt \
-		-resource:Resources/AlphaUnlitVertexColored.shader,Kethane.Resources.AlphaUnlitVertexColored.txt \
 		-out:$@ ${K_FILES}
 
 clean:

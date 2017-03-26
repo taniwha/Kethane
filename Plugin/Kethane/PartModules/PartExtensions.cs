@@ -6,12 +6,11 @@ namespace Kethane.PartModules
 {
     internal static class PartExtensions
     {
-        public static List<PartResource> GetConnectedResources(this Part part, String resourceName)
+        public static void GetConnectedResourceTotals(this Part part, String resourceName, out double amount, out double maxAmount, bool pulling = true)
         {
             var resourceDef = PartResourceLibrary.Instance.GetDefinition(resourceName);
             var resources = new List<PartResource>();
-            part.GetConnectedResources(resourceDef.id, resourceDef.resourceFlowMode, resources);
-            return resources;
+            part.GetConnectedResourceTotals(resourceDef.id, resourceDef.resourceFlowMode, out amount, out maxAmount, pulling);
         }
 
         public static AnimationState[] SetUpAnimation(this Part part, string animationName)

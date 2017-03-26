@@ -22,7 +22,7 @@ namespace Kethane
                     var proto = game.AddProtoScenarioModule(typeof(KethaneData), GameScenes.FLIGHT, GameScenes.TRACKSTATION);
                     if (proto.targetScenes.Contains(HighLogic.LoadedScene))
                     {
-                        proto.Load(ScenarioRunner.fetch);
+                        proto.Load(ScenarioRunner.Instance);
                     }
                 }
 

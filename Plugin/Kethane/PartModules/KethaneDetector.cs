@@ -192,7 +192,7 @@ namespace Kethane.PartModules
         // Also from: http://kerbalspaceprogram.com/forum/index.php?topic=10324.msg161923#msg161923
         private static double getTrueAltitude(Vessel vessel)
         {
-            Vector3 CoM = vessel.findWorldCenterOfMass();
+            Vector3 CoM = vessel.CoM;
             Vector3 up = (CoM - vessel.mainBody.position).normalized;
             double altitudeASL = vessel.mainBody.GetAltitude(CoM);
             double altitudeTrue = 0.0;

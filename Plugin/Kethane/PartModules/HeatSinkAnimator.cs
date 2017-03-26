@@ -155,6 +155,8 @@ namespace Kethane.PartModules
 			}
 		}
 
+		public bool IsMultipleCubesActive { get { return false; } }
+
 		public bool UsesProceduralDragCubes()
 		{
 			return false;

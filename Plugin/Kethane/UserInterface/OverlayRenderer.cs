@@ -142,7 +142,7 @@ namespace Kethane.UserInterface
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             renderer.receiveShadows = false;
 
-            var material = new Material(new System.IO.StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Kethane.Resources.AlphaUnlitVertexColored.txt")).ReadToEnd());
+            var material = new Material(GameDatabase.Instance.GetShader("Kethane/AlphaUnlitVertexColored"));
 
             var color = Color.white;
             color.a = 0.4f;
