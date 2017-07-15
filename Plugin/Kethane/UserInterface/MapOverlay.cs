@@ -72,6 +72,11 @@ namespace Kethane.UserInterface
             return Cell.Containing(body.transform.InverseTransformPoint(worldPosition), KethaneData.GridLevel);
         }
 
+        public static Cell GetCellUnder(CelestialBody body, double latitude, double longitude)
+        {
+            return Cell.Containing(body.GetRelSurfaceNVector(latitude, longitude), KethaneData.GridLevel);
+        }
+
         public void Awake()
         {
             enabled = true;
@@ -191,6 +196,14 @@ namespace Kethane.UserInterface
             var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit) : colorUnknown;
             return color;
         }
+
+		public static Color32 GetCellColor(Cell cell, BodyResourceData bodyResources, ResourceDefinition resource)
+		{
+            var deposit = bodyResources.Resources.GetQuantity(cell);
+            var scanned = bodyResources.IsCellScanned(cell);
+            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit) : colorUnknown;
+            return color;
+		}
 
         private static Color32 getDepositColor(ResourceDefinition definition, BodyResourceData bodyResources, double? deposit)
         {

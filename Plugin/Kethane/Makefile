@@ -38,6 +38,7 @@ K_FILES := \
 	ResourceDefinition.cs	\
 	Scenarios/KethaneScanningTutorial.cs	\
 	SettingsManager.cs	\
+	UserInterface/KerbNetModeKethane.cs	\
 	UserInterface/MainMenuOverlay.cs	\
 	UserInterface/MapOverlay.cs	\
 	UserInterface/OverlayRenderer.cs	\
@@ -50,8 +51,9 @@ K_FILES := \
 	$e
 
 RESGEN2		:= resgen2
-GMCS		:= mcs
-GMCSFLAGS	:= -optimize -debug
+MCS		:= mcs
+#MCSFLAGS	:= -optimize -debug -warnaserror
+MCSFLAGS	:= -optimize -debug
 GIT			:= git
 TAR			:= tar
 ZIP			:= zip
@@ -66,8 +68,8 @@ version:
 info:
 	@echo "Kethane Build Information"
 	@echo "    resgen2:    ${RESGEN2}"
-	@echo "    gmcs:       ${GMCS}"
-	@echo "    gmcs flags: ${GMCSFLAGS}"
+	@echo "    gmcs:       ${MCS}"
+	@echo "    gmcs flags: ${MCSFLAGS}"
 	@echo "    git:        ${GIT}"
 	@echo "    tar:        ${TAR}"
 	@echo "    zip:        ${ZIP}"
@@ -75,7 +77,7 @@ info:
 
 bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt
 	@mkdir -p bin
-	${GMCS} ${GMCSFLAGS} -t:library -lib:"${MANAGED}" \
+	${MCS} ${MCSFLAGS} -t:library -lib:"${MANAGED}" \
 		-r:Assembly-CSharp,Assembly-CSharp-firstpass \
 		-r:UnityEngine,UnityEngine.UI \
 		-lib:../../../GeodesicGrid/bin \
