@@ -176,7 +176,6 @@ namespace Kethane.UserInterface
             }
 
             mesh.triangles = triangles.ToArray();
-            mesh.Optimize();
         }
 
         private void updateVertices()
