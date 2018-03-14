@@ -47,6 +47,7 @@ K_FILES := \
 	Utilities/InstallChecker.cs	\
 	Utilities/InstallCleanup.cs	\
 	Utilities/LicenseSentinel.cs	\
+	Utilities/ShaderLoader.cs \
 	Utilities/TutorialInstaller.cs	\
 	$e
 
@@ -79,6 +80,7 @@ bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt
 	@mkdir -p bin
 	${MCS} ${MCSFLAGS} -t:library -lib:"${MANAGED}" \
 		-r:Assembly-CSharp,Assembly-CSharp-firstpass \
+		-r:KSPAssets \
 		-r:UnityEngine,UnityEngine.UI \
 		-lib:../../../GeodesicGrid/bin \
 		-r:GeodesicGrid \
