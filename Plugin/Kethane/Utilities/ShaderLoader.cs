@@ -8,7 +8,7 @@ using System.Text;
 using UnityEngine;
 using KSPAssets.Loaders;
 
-namespace ShaderLoader
+namespace Kethane.ShaderLoader
 {
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
     public class KethaneShaderLoader: MonoBehaviour

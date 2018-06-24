@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+using Kethane.ShaderLoader;
+
 namespace Kethane.UserInterface
 {
     internal class OverlayRenderer : MonoBehaviour
@@ -142,7 +144,7 @@ namespace Kethane.UserInterface
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             renderer.receiveShadows = false;
 
-			var shader = GameDatabase.Instance.GetShader("Kethane/AlphaUnlitVertexColored");
+			var shader = KethaneShaderLoader.FindShader("Kethane/AlphaUnlitVertexColored");
 			if (shader != null) {
 				var material = new Material(shader);
 
