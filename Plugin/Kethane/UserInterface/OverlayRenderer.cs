@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+using Kethane.ShaderLoader;
+
 namespace Kethane.UserInterface
 {
     internal class OverlayRenderer : MonoBehaviour
@@ -142,13 +144,16 @@ namespace Kethane.UserInterface
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             renderer.receiveShadows = false;
 
-            var material = new Material(GameDatabase.Instance.GetShader("Kethane/AlphaUnlitVertexColored"));
+			var shader = KethaneShaderLoader.FindShader("Kethane/AlphaUnlitVertexColored");
+			if (shader != null) {
+				var material = new Material(shader);
 
-            var color = Color.white;
-            color.a = 0.4f;
-            material.color = color;
+				var color = Color.white;
+				color.a = 0.4f;
+				material.color = color;
 
-            renderer.material = material;
+				renderer.material = material;
+			}
         }
 
         private void updateTriangles()
@@ -176,7 +181,6 @@ namespace Kethane.UserInterface
             }
 
             mesh.triangles = triangles.ToArray();
-            mesh.Optimize();
         }
 
         private void updateVertices()

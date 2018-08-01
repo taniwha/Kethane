@@ -9,7 +9,6 @@ namespace Kethane.PartModules
         public static void GetConnectedResourceTotals(this Part part, String resourceName, out double amount, out double maxAmount, bool pulling = true)
         {
             var resourceDef = PartResourceLibrary.Instance.GetDefinition(resourceName);
-            var resources = new List<PartResource>();
             part.GetConnectedResourceTotals(resourceDef.id, resourceDef.resourceFlowMode, out amount, out maxAmount, pulling);
         }
 

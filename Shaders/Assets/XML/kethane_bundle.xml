@@ -3,7 +3,7 @@
   <Author />
   <Info />
   <Assets>
-    <Asset Name="Kethane/AlphaUnlitVertexColored" Path="Assets/Shaders/AlphaUnlitVertexColored.shader" Type="Shader" Url="Shaders/AlphaUnlitVertexColored" AutoLoad="true" />
+    <Asset Name="Kethane/AlphaUnlitVertexColored" Path="Assets/Shaders/AlphaUnlitVertexColored.shader" Type="Shader" Url="Shaders/AlphaUnlitVertexColored" AutoLoad="false" />
   </Assets>
   <Dependencies />
 </KSPBundleDefinition>
