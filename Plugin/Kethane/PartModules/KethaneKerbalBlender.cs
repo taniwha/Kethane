@@ -18,7 +18,7 @@ namespace Kethane.PartModules
             }
             FlightGlobals.ForceSetActiveVessel(this.vessel);
             vessel.rootPart.explode();
-            this.part.RequestResource("Kethane", -150);
+            this.part.RequestResource("Kethane", -150d);
         }
     }
 }

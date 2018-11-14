@@ -32,7 +32,7 @@ namespace Kethane.PartModules
 
         private double TimerEcho;
 
-        private float powerRatio;
+        private double powerRatio;
 
         private static AudioSource PingEmpty;
         private static AudioSource PingDeposit;
@@ -145,7 +145,7 @@ namespace Kethane.PartModules
             foreach (var animator in part.Modules.OfType<IDetectorAnimator>())
             {
                 animator.IsDetecting = IsDetecting;
-                animator.PowerRatio = powerRatio;
+                animator.PowerRatio = (float) powerRatio;
             }
         }
 
@@ -154,8 +154,8 @@ namespace Kethane.PartModules
             double Altitude = getTrueAltitude(vessel);
             if (IsDetecting && this.vessel != null && this.vessel.gameObject.activeSelf && Altitude <= this.DetectingHeight)
             {
-                var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
-                var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
+                double energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
+                double energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
                 TimerEcho += TimeWarp.deltaTime * this.powerRatio;
 

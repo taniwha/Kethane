@@ -7,9 +7,9 @@ namespace Kethane.PartModules
     {
         private struct TimedValue
         {
-            public readonly float Time;
-            public readonly float Value;
-            public TimedValue(float time, float value)
+            public readonly double Time;
+            public readonly double Value;
+            public TimedValue(double time, double value)
             {
                 Time = time;
                 Value = value;
@@ -17,26 +17,26 @@ namespace Kethane.PartModules
         }
 
         private readonly Queue<TimedValue> values = new Queue<TimedValue>();
-        private readonly float interval;
+        private readonly double interval;
 
-        public TimedMovingAverage(float interval, float initialValue = 0)
+        public TimedMovingAverage(double interval, double initialValue = 0)
         {
             this.interval = interval;
             values.Enqueue(new TimedValue(interval, initialValue));
         }
 
-        public void Update(float time, float value)
+        public void Update(double time, double value)
         {
             values.Enqueue(new TimedValue(time, value));
         }
 
-        public float Average
+        public double Average
         {
             get
             {
-                var time = 0f;
-                var value = 0f;
-                var removing = values.Count;
+                double time = 0;
+                double value = 0;
+                int removing = values.Count;
 
                 foreach (var entry in values)
                 {

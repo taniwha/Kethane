@@ -24,7 +24,7 @@ namespace Kethane.PartModules
         public float MinEmission;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Output", guiFormat = "P1")]
-        public float Output;
+        public double Output;
 
         [KSPField(isPersistant = true)]
         public bool Enabled;
@@ -34,8 +34,8 @@ namespace Kethane.PartModules
 
         private KethaneParticleEmitter exhaustEmitter;
 
-        private TimedMovingAverage output = new TimedMovingAverage(3f);
-        private TimedMovingAverage fanSpeed = new TimedMovingAverage(1f);
+        private TimedMovingAverage output = new TimedMovingAverage(3);
+        private TimedMovingAverage fanSpeed = new TimedMovingAverage(1);
         private Func<double, double> logistic = x => (1 / (Math.Exp(15 * x - 10.5) + 1));
 
         [KSPEvent(guiActive = true, guiName = "Enable Generator", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
@@ -85,12 +85,12 @@ namespace Kethane.PartModules
             Events["Disable"].active = Enabled;
 
             exhaustEmitter.Emit = Output > 0;
-            exhaustEmitter.MaxEmission = MaxEmission * Output;
-            exhaustEmitter.MinEmission = MinEmission * Output;
+            exhaustEmitter.MaxEmission = (float)(MaxEmission * Output);
+            exhaustEmitter.MinEmission = (float)(MinEmission * Output);
 
             foreach (var state in fanStates)
             {
-                state.speed = fanSpeed.Average * 2f;
+                state.speed = (float) fanSpeed.Average * 2f;
             }
 
             foreach (var state in slatStates)
@@ -104,17 +104,17 @@ namespace Kethane.PartModules
         {
 			double amount, maxAmount;
 			part.GetConnectedResourceTotals("ElectricCharge", out amount, out maxAmount);
-            var demand = (float)(Enabled ? logistic(amount / maxAmount) : 0);
+            var demand = (Enabled ? logistic(amount / maxAmount) : 0);
 
             if (demand < 0.1f) { demand = 0; }
 
-            var pressure = (float)FlightGlobals.getStaticPressure(part.transform.position);
+            var pressure = FlightGlobals.getStaticPressure(part.transform.position);
             fanSpeed.Update(TimeWarp.fixedDeltaTime, demand * (2 * pressure) / (pressure * pressure + 1));
 
             var pressureEfficiencyFactor = 0.5f;
-            var kethaneDemand = demand * KethaneRate * TimeWarp.fixedDeltaTime / (1 + fanSpeed.Average * pressure * pressureEfficiencyFactor);
+            double kethaneDemand = demand * KethaneRate * TimeWarp.fixedDeltaTime / (1 + fanSpeed.Average * pressure * pressureEfficiencyFactor);
 
-            var kethaneDrawn = (float)part.RequestResource("Kethane", kethaneDemand);
+            double kethaneDrawn = part.RequestResource("Kethane", kethaneDemand);
             output.Update(TimeWarp.fixedDeltaTime, kethaneDemand > 0 ? demand * kethaneDrawn / kethaneDemand : 0);
 
             part.RequestResource("XenonGas", -kethaneDrawn * XenonMassRatio * PartResourceLibrary.Instance.GetDefinition("Kethane").density / PartResourceLibrary.Instance.GetDefinition("XenonGas").density);

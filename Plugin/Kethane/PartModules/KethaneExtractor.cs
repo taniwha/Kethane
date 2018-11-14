@@ -206,8 +206,8 @@ namespace Kethane.PartModules
             if (animator.CurrentState != ExtractorState.Deployed) { return; }
             if (!raycastGround()) { return; }
 
-            var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
-            var energyRatio = this.part.RequestResource("ElectricCharge", energyRequest) / energyRequest;
+            double energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
+            double energyRatio = this.part.RequestResource("ElectricCharge", energyRequest) / energyRequest;
 
             foreach (var resource in resources)
             {

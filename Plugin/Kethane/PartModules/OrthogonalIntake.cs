@@ -24,23 +24,23 @@ namespace Kethane.PartModules
         {
             if (!HighLogic.LoadedSceneIsFlight) { return; }
 
-            var resourceDensity = PartResourceLibrary.Instance.GetDefinition(Resource).density;
-            var airDensity = this.part.vessel.atmDensity;
+            double resourceDensity = PartResourceLibrary.Instance.GetDefinition(Resource).density;
+            double airDensity = this.part.vessel.atmDensity;
 
-            var amount = BaseFlowRate;
+            double amount = BaseFlowRate;
 
             var engine = this.part.Modules.OfType<ModuleEngines>().Single();
-            var throttle = engine.finalThrust / engine.maxThrust;
+            double throttle = engine.finalThrust / engine.maxThrust;
             amount += throttle * PowerFlowRate;
 
-            var airSpeed = (float)this.part.vessel.srf_velocity.magnitude;
+            double airSpeed = this.part.vessel.srf_velocity.magnitude;
             amount += airSpeed * SpeedFlowRate;
 
             amount = Math.Max(amount, 0);
-            AirFlow = amount * 1000;
+            AirFlow = (float)(amount * 1000);
 
             amount *= TimeWarp.fixedDeltaTime;
-            amount *= (float)airDensity / resourceDensity;
+            amount *= airDensity / resourceDensity;
             this.part.RequestResource(Resource, -amount);
         }
     }
