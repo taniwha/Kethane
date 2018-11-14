@@ -6,30 +6,14 @@ using UnityEngine;
 
 namespace Kethane
 {
+	[KSPScenario(ScenarioCreationOptions.AddToAllGames,
+				 GameScenes.SPACECENTER, GameScenes.FLIGHT,
+				 GameScenes.TRACKSTATION)]
     public class KethaneData : ScenarioModule
     {
         public const int GridLevel = 5;
 
-        public static KethaneData Current
-        {
-            get
-            {
-                var game = HighLogic.CurrentGame;
-                if (game == null) { return null; }
-
-                if (!game.scenarios.Any(p => p.moduleName == typeof(KethaneData).Name))
-                {
-					//FIXME does not cause SPACECENTER to get added to an existing scenario
-                    var proto = game.AddProtoScenarioModule(typeof(KethaneData), GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.TRACKSTATION);
-                    if (proto.targetScenes.Contains(HighLogic.LoadedScene))
-                    {
-                        proto.Load(ScenarioRunner.Instance);
-                    }
-                }
-
-                return game.scenarios.Select(s => s.moduleRef).OfType<KethaneData>().SingleOrDefault();
-            }
-        }
+        public static KethaneData Current { get; private set; }
 
         private Dictionary<string, ResourceData> resources = new Dictionary<string, ResourceData>();
 
@@ -79,5 +63,16 @@ namespace Kethane
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
         }
+
+		public override void OnAwake ()
+		{
+			Current = this;
+			Debug.LogFormat("[KethaneData] OnAwake");
+		}
+
+		void OnDestroy ()
+		{
+			Current = null;
+		}
     }
 }
