@@ -145,10 +145,10 @@ namespace Kethane.PartModules
 
         public override void OnStart(PartModule.StartState state)
         {
-            BaseTransform = this.part.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box");
-            Cyl3Transform = BaseTransform.FindChild("1 Cyl");
-            Cyl2Transform = Cyl3Transform.FindChild("2 Cyl");
-            Cyl1Transform = Cyl2Transform.FindChild("3 Cyl");
+            BaseTransform = this.part.transform.Find("model").Find("Kethane Small Miner").Find("Main Box");
+            Cyl3Transform = BaseTransform.Find("1 Cyl");
+            Cyl2Transform = Cyl3Transform.Find("2 Cyl");
+            Cyl1Transform = Cyl2Transform.Find("3 Cyl");
         }
 
         public void Deploy()

@@ -27,14 +27,14 @@ namespace Kethane.PartModules
             if (body == null)
                 return;
 
-            var BaseT = this.part.transform.FindChild("model");
+            var BaseT = this.part.transform.Find("model");
 
             if (!String.IsNullOrEmpty(PartTransform))
             {
-                BaseT = BaseT.FindChild(PartTransform);
+                BaseT = BaseT.Find(PartTransform);
             }
 
-            BaseT = BaseT.FindChild(BaseTransform);
+            BaseT = BaseT.Find(BaseTransform);
 
             Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
             Vector2 pos = cartesianToPolar(bodyCoords);
@@ -42,8 +42,8 @@ namespace Kethane.PartModules
             var alpha = (float)normalizeAngle(pos.x + 90);
             var beta = (float)normalizeAngle(pos.y);
 
-            Transform RotH = BaseT.FindChild(HeadingTransform);
-            Transform RotV = RotH.FindChild(ElevationTransform);
+            Transform RotH = BaseT.Find(HeadingTransform);
+            Transform RotV = RotH.Find(ElevationTransform);
 
             if (Math.Abs(RotH.localEulerAngles.y - beta) > 90)
             {
