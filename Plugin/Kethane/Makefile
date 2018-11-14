@@ -49,6 +49,7 @@ K_FILES := \
 	Utilities/LicenseSentinel.cs	\
 	Utilities/ShaderLoader.cs \
 	Utilities/TutorialInstaller.cs	\
+	VesselModules/KethaneScanner.cs \
 	$e
 
 RESGEN2		:= resgen2
