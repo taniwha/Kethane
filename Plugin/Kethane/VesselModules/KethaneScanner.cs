@@ -20,6 +20,7 @@ public class KethaneVesselScanner : VesselModule
 
 	bool started;
 	bool isScanning;
+	double generatorEC;
 
 	void FindDetectors ()
 	{
@@ -75,6 +76,26 @@ public class KethaneVesselScanner : VesselModule
 		}
 	}
 
+	void FindGenerators ()
+	{
+		var generators = vessel.FindPartModulesImplementing<ModuleGenerator>();
+		generatorEC = 0;
+		for (int i = generators.Count; i-- > 0; ) {
+			var gen = generators[i];
+			var resHandler = gen.resHandler;
+			bool active = (gen.moduleIsEnabled
+						   && (gen.isAlwaysActive || gen.generatorIsActive));
+			// Really don't want to deal with anything that consumes resources
+			// to create EC or that produces anything other than EC (better to
+			// pretend those module simply shutdown than to break how they work)
+			if (resHandler.inputResources.Count == 0
+				&& resHandler.outputResources.Count == 1
+				&& resHandler.outputResources[0].name == "ElectricCharge") {
+				generatorEC += resHandler.outputResources[0].rate;
+			}
+		}
+	}
+
 	public void UpdateDetecting (KethaneDetector det)
 	{
 		int index = detectors.IndexOf (det);
@@ -109,6 +130,10 @@ public class KethaneVesselScanner : VesselModule
 				protoDetectors.Add (det);
 			}
 		}
+		generatorEC = 0;
+		if (node.HasValue ("generatorEC")) {
+			double.TryParse (node.GetValue ("generatorEC"), out generatorEC);
+		}
 
 		GameEvents.onVesselCreate.Add (onVesselCreate);
 
@@ -121,6 +146,13 @@ public class KethaneVesselScanner : VesselModule
 		if (protoDetectors == null) {
 			return;
 		}
+		if (vessel.loaded) {
+			// need to find out what generators are available before saving,
+			// but only when loaded as unloaded vessels already have
+			// generatorEC set.
+			FindGenerators ();
+		}
+		node.AddValue ("generatorEC", generatorEC);
 		for (int i = 0; i < protoDetectors.Count; i++) {
 			protoDetectors[i].Save (node);
 		}
@@ -191,6 +223,7 @@ public class KethaneVesselScanner : VesselModule
 	public override void OnUnloadVessel ()
 	{
 		Debug.LogFormat("[KethaneVesselScanner] OnUnloadVessel: {0} {1} {2}", vessel.gameObject == gameObject, enabled, gameObject.activeInHierarchy);
+		FindGenerators ();
 	}
 
 	public void OnVesselUnload()
@@ -227,6 +260,43 @@ public class KethaneVesselScanner : VesselModule
 			}
 		}
 		return amount;
+	}
+
+	double PushEC (double amount)
+	{
+		double availEC = 0;
+		for (int i = batteryList.Count; i-- > 0; ) {
+			if (batteryList[i].flowState) {
+				availEC += batteryList[i].maxAmount - batteryList[i].amount;
+			}
+		}
+		if (amount >= availEC) {
+			amount = availEC;
+			if (availEC > 0) {
+				for (int i = batteryList.Count; i-- > 0; ) {
+					batteryList[i].amount = batteryList[i].maxAmount;
+				}
+			}
+		} else {
+			for (int i = batteryList.Count; i-- > 0; ) {
+				var bat = batteryList[i];
+				if (bat.flowState) {
+					double bamt = bat.amount;
+					double max = bat.maxAmount - bamt;
+					double amt = amount * max / availEC;
+					if (amt > max) {
+						amt = max;
+					}
+					bat.amount = bamt + amt;
+				}
+			}
+		}
+		return amount;
+	}
+
+	void RunGenerators ()
+	{
+		PushEC (generatorEC * TimeWarp.fixedDeltaTime);
 	}
 
 	void FixedUpdate ()
@@ -277,6 +347,11 @@ public class KethaneVesselScanner : VesselModule
 			&& vessel == FlightGlobals.ActiveVessel) {
 			(detected ? PingDeposit : PingEmpty).Play();
 			(detected ? PingDeposit : PingEmpty).loop = false;
+		}
+
+		// when the vessel is loaded, let KSP deal with power generation
+		if (!vessel.loaded) {
+			RunGenerators ();
 		}
 	}
 }
