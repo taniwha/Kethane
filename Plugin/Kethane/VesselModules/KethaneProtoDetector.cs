@@ -16,6 +16,7 @@ public class KethaneProtoDetector
 	public List<string> resources;
 	public bool IsDetecting;
 	public double TimerEcho;
+	public double powerRatio;
 
 	public KethaneProtoDetector (KethaneDetector det)
 	{

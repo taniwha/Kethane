@@ -49,6 +49,9 @@ K_FILES := \
 	Utilities/LicenseSentinel.cs	\
 	Utilities/ShaderLoader.cs \
 	Utilities/TutorialInstaller.cs	\
+	VesselModules/IKethaneBattery.cs \
+	VesselModules/KethaneBattery.cs \
+	VesselModules/KethaneProtoBattery.cs \
 	VesselModules/KethaneProtoDetector.cs \
 	VesselModules/KethaneScanner.cs \
 	$e

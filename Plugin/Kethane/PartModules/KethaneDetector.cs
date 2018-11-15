@@ -31,16 +31,14 @@ namespace Kethane.PartModules
         public string configString;
 
         internal List<string> resources;
-		internal KethaneVesselScanner scanner;
-
-        private double powerRatio;
+		internal KethaneProtoDetector scanner;
 
         [KSPEvent(guiActive = true, guiName = "Activate Detector", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void EnableDetection()
         {
             IsDetecting = true;
 			if (scanner != null) {
-				scanner.UpdateDetecting (this);
+				scanner.IsDetecting = IsDetecting;
 			}
         }
 
@@ -49,7 +47,7 @@ namespace Kethane.PartModules
         {
             IsDetecting = false;
 			if (scanner != null) {
-				scanner.UpdateDetecting (this);
+				scanner.IsDetecting = IsDetecting;
 			}
         }
 
@@ -70,7 +68,7 @@ namespace Kethane.PartModules
         {
             IsDetecting = !IsDetecting;
 			if (scanner != null) {
-				scanner.UpdateDetecting (this);
+				scanner.IsDetecting = IsDetecting;
 			}
         }
 
@@ -125,9 +123,9 @@ namespace Kethane.PartModules
 
             if (vessel.getTrueAltitude() <= this.DetectingHeight)
             {
-                if (IsDetecting)
+                if (IsDetecting && scanner != null)
                 {
-                    Status = powerRatio > 0 ? "Active" : "Insufficient Power";
+                    Status = scanner.powerRatio > 0 ? "Active" : "Insufficient Power";
                 }
                 else
                 {
@@ -142,7 +140,11 @@ namespace Kethane.PartModules
             foreach (var animator in part.Modules.OfType<IDetectorAnimator>())
             {
                 animator.IsDetecting = IsDetecting;
-                animator.PowerRatio = 1;//(float) powerRatio;
+				if (scanner != null) {
+					animator.PowerRatio = (float) scanner.powerRatio;
+				} else {
+					animator.PowerRatio = 0;
+				}
             }
         }
     }

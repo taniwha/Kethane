@@ -12,6 +12,8 @@ public class KethaneVesselScanner : VesselModule
 {
 	List<KethaneDetector> detectors;
 	List<KethaneProtoDetector> protoDetectors;
+	Dictionary<uint, IKethaneBattery> batteries;
+	List<IKethaneBattery> batteryList;
 
 	AudioSource PingEmpty;
 	AudioSource PingDeposit;
@@ -24,8 +26,52 @@ public class KethaneVesselScanner : VesselModule
 		detectors = vessel.FindPartModulesImplementing<KethaneDetector>();
 		protoDetectors = new List<KethaneProtoDetector>();
 		foreach (var det in detectors) {
-			protoDetectors.Add (new KethaneProtoDetector(det));
-			det.scanner = this;
+			det.scanner = new KethaneProtoDetector(det);
+			protoDetectors.Add (det.scanner);
+		}
+	}
+
+	static void FindBatteries (Dictionary<uint, IKethaneBattery> batteries,
+							   List<IKethaneBattery> batteryList,
+							   List<Part> parts)
+	{
+		//FIXME should not be hard-coded
+		int resID = "ElectricCharge".GetHashCode();
+		foreach (var p in parts) {
+			var res = p.Resources.Get (resID);
+			if (res != null) {
+				var bat = new KethaneBattery (res);
+				batteries[p.flightID] = bat;
+				batteryList.Add (bat);
+			}
+		}
+	}
+
+	static void FindBatteries (Dictionary<uint, IKethaneBattery> batteries,
+							   List<IKethaneBattery> batteryList,
+							   List<ProtoPartSnapshot> parts)
+	{
+		foreach (var p in parts) {
+			foreach (var res in p.resources) {
+				//FIXME should not be hard-coded
+				if (res.resourceName == "ElectricCharge") {
+					var bat = new KethaneProtoBattery (res);
+					batteries[p.flightID] = bat;
+					batteryList.Add (bat);
+				}
+			}
+		}
+	}
+
+	void FindBatteries ()
+	{
+		batteries = new Dictionary<uint, IKethaneBattery> ();
+		batteryList = new List<IKethaneBattery> ();
+		if (vessel.loaded) {
+			FindBatteries (batteries, batteryList, vessel.parts);
+		} else {
+			FindBatteries (batteries, batteryList,
+						   vessel.protoVessel.protoPartSnapshots);
 		}
 	}
 
@@ -45,6 +91,14 @@ public class KethaneVesselScanner : VesselModule
 		return active;
 	}
 
+	void onVesselCreate (Vessel v)
+	{
+		if (v == vessel) {
+			GameEvents.onVesselCreate.Remove (onVesselCreate);
+			FindBatteries ();
+		}
+	}
+
 	protected override void OnLoad (ConfigNode node)
 	{
 		protoDetectors = new List<KethaneProtoDetector> ();
@@ -56,13 +110,14 @@ public class KethaneVesselScanner : VesselModule
 			}
 		}
 
+		GameEvents.onVesselCreate.Add (onVesselCreate);
+
 		// ensure the scanner runs at least once when the vessel is not loaded
 		isScanning = true;
 	}
 
 	protected override void OnSave (ConfigNode node)
 	{
-		Debug.LogFormat("[KethaneVesselScanner] OnSave: {0} {1} {2}", vessel.gameObject == gameObject, enabled, gameObject.activeInHierarchy);
 		if (protoDetectors == null) {
 			return;
 		}
@@ -75,6 +130,7 @@ public class KethaneVesselScanner : VesselModule
 	{
 		if (v == vessel) {
 			FindDetectors ();
+			FindBatteries ();
 		}
 	}
 
@@ -129,6 +185,7 @@ public class KethaneVesselScanner : VesselModule
 	public override void OnLoadVessel ()
 	{
 		FindDetectors ();
+		FindBatteries ();
 	}
 
 	public override void OnUnloadVessel ()
@@ -139,6 +196,37 @@ public class KethaneVesselScanner : VesselModule
 	public void OnVesselUnload()
 	{
 		Debug.LogFormat("[KethaneVesselScanner] OnVesselUnload: {0}", vessel.name);
+	}
+
+	double DrawEC (double amount)
+	{
+		double availEC = 0;
+		for (int i = batteryList.Count; i-- > 0; ) {
+			if (batteryList[i].flowState) {
+				availEC += batteryList[i].amount;
+			}
+		}
+		if (amount >= availEC) {
+			amount = availEC;
+			if (availEC > 0) {
+				for (int i = batteryList.Count; i-- > 0; ) {
+					batteryList[i].amount = 0;
+				}
+			}
+		} else {
+			for (int i = batteryList.Count; i-- > 0; ) {
+				var bat = batteryList[i];
+				if (bat.flowState) {
+					double bamt = bat.amount;
+					double amt = amount * bamt / availEC;
+					if (amt > bamt) {
+						amt = bamt;
+					}
+					bat.amount = bamt - amt;
+				}
+			}
+		}
+		return amount;
 	}
 
 	void FixedUpdate ()
@@ -160,7 +248,11 @@ public class KethaneVesselScanner : VesselModule
 			}
 			isScanning = true;
 			if (Altitude < detector.DetectingHeight) {
-				detector.TimerEcho += TimeWarp.deltaTime; //FIXME * detector.powerRatio
+				double req = detector.PowerConsumption * TimeWarp.fixedDeltaTime;
+				double drawn = DrawEC (req);
+				detector.powerRatio = drawn / req;
+
+				detector.TimerEcho += TimeWarp.deltaTime * detector.powerRatio;
 				var TimerThreshold = detector.DetectingPeriod * (1 + Altitude * 2e-6);
 				if (detector.TimerEcho >= TimerThreshold) {
 					var cell = MapOverlay.GetCellUnder(body, position);
