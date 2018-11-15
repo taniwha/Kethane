@@ -14,12 +14,25 @@ public class KethaneProtoDetector
 	public float DetectingHeight;
 	public float PowerConsumption;
 	public List<string> resources;
-	public bool IsDetecting;
+	KethaneVesselScanner vesselScanner;
+	bool isDetecting;
+	public bool IsDetecting
+	{
+		get {
+			return isDetecting;
+		}
+		set {
+			isDetecting = value;
+			vesselScanner.UpdateDetecting();
+		}
+	}
 	public double TimerEcho;
 	public double powerRatio;
 
-	public KethaneProtoDetector (KethaneDetector det)
+	public KethaneProtoDetector (KethaneDetector det,
+								 KethaneVesselScanner scanner)
 	{
+		vesselScanner = scanner;
 		DetectingPeriod = det.DetectingPeriod;
 		DetectingHeight = det.DetectingHeight;
 		PowerConsumption = det.PowerConsumption;
@@ -28,8 +41,10 @@ public class KethaneProtoDetector
 		TimerEcho = 0;
 	}
 
-	public KethaneProtoDetector (ConfigNode node)
+	public KethaneProtoDetector (ConfigNode node,
+								 KethaneVesselScanner scanner)
 	{
+		vesselScanner = scanner;
 		string s;
 		if (node.HasValue ("DetectingPeriod")) {
 			s = node.GetValue ("DetectingPeriod");
@@ -45,7 +60,9 @@ public class KethaneProtoDetector
 		}
 		if (node.HasValue ("IsDetecting")) {
 			s = node.GetValue ("IsDetecting");
-			bool.TryParse (s, out IsDetecting);
+			bool val;
+			bool.TryParse (s, out val);
+			IsDetecting = val;
 		}
 		if (node.HasValue ("TimerEcho")) {
 			s = node.GetValue ("TimerEcho");

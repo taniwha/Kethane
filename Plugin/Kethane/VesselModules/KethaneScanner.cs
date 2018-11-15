@@ -21,13 +21,15 @@ public class KethaneVesselScanner : VesselModule
 	bool started;
 	bool isScanning;
 	double generatorEC;
+	double solarEC;
+	int planetLayerMask;
 
 	void FindDetectors ()
 	{
 		detectors = vessel.FindPartModulesImplementing<KethaneDetector>();
 		protoDetectors = new List<KethaneProtoDetector>();
 		foreach (var det in detectors) {
-			det.scanner = new KethaneProtoDetector(det);
+			det.scanner = new KethaneProtoDetector(det, this);
 			protoDetectors.Add (det.scanner);
 		}
 	}
@@ -88,7 +90,7 @@ public class KethaneVesselScanner : VesselModule
 			// Really don't want to deal with anything that consumes resources
 			// to create EC or that produces anything other than EC (better to
 			// pretend those module simply shutdown than to break how they work)
-			if (resHandler.inputResources.Count == 0
+			if (active && resHandler.inputResources.Count == 0
 				&& resHandler.outputResources.Count == 1
 				&& resHandler.outputResources[0].name == "ElectricCharge") {
 				generatorEC += resHandler.outputResources[0].rate;
@@ -96,10 +98,26 @@ public class KethaneVesselScanner : VesselModule
 		}
 	}
 
-	public void UpdateDetecting (KethaneDetector det)
+	void FindSolarPanels ()
 	{
-		int index = detectors.IndexOf (det);
-		protoDetectors[index].IsDetecting = det.IsDetecting;
+		var solarPanels = vessel.FindPartModulesImplementing<ModuleDeployableSolarPanel>();
+		solarEC = 0;
+		for (int i = solarPanels.Count; i-- > 0; ) {
+			var sol = solarPanels[i];
+			var resHandler = sol.resHandler;
+			// Really don't want to deal with anything that consumes resources
+			// to create EC or that produces anything other than EC (better to
+			// pretend those module simply shutdown than to break how they work)
+			if (resHandler.inputResources.Count == 0
+				&& resHandler.outputResources.Count == 1
+				&& resHandler.outputResources[0].name == "ElectricCharge") {
+				solarEC += sol._flowRate * resHandler.outputResources[0].rate;
+			}
+		}
+	}
+
+	public void UpdateDetecting ()
+	{
 		// FixedUpdate will set to the correct value, but need to ensure
 		// FixedUpdate gets run at least once.
 		isScanning = true;
@@ -126,13 +144,18 @@ public class KethaneVesselScanner : VesselModule
 		for (int i = 0; i < node.nodes.Count; i++) {
 			ConfigNode n = node.nodes[i];
 			if (n.name == "Detector") {
-				var det = new KethaneProtoDetector (n);
+				var det = new KethaneProtoDetector (n, this);
 				protoDetectors.Add (det);
 			}
 		}
 		generatorEC = 0;
 		if (node.HasValue ("generatorEC")) {
 			double.TryParse (node.GetValue ("generatorEC"), out generatorEC);
+		}
+
+		solarEC = 0;
+		if (node.HasValue ("solarEC")) {
+			double.TryParse (node.GetValue ("solarEC"), out solarEC);
 		}
 
 		GameEvents.onVesselCreate.Add (onVesselCreate);
@@ -149,10 +172,12 @@ public class KethaneVesselScanner : VesselModule
 		if (vessel.loaded) {
 			// need to find out what generators are available before saving,
 			// but only when loaded as unloaded vessels already have
-			// generatorEC set.
+			// generatorEC and solarEC set.
 			FindGenerators ();
+			FindSolarPanels ();
 		}
 		node.AddValue ("generatorEC", generatorEC);
+		node.AddValue ("solarEC", solarEC);
 		for (int i = 0; i < protoDetectors.Count; i++) {
 			protoDetectors[i].Save (node);
 		}
@@ -169,6 +194,7 @@ public class KethaneVesselScanner : VesselModule
 	protected override void OnAwake ()
 	{
 		GameEvents.onVesselWasModified.Add (onVesselWasModified);
+		planetLayerMask = 1 << LayerMask.NameToLayer("Scaled Scenery");
 	}
 
 	void OnDestroy ()
@@ -224,6 +250,7 @@ public class KethaneVesselScanner : VesselModule
 	{
 		Debug.LogFormat("[KethaneVesselScanner] OnUnloadVessel: {0} {1} {2}", vessel.gameObject == gameObject, enabled, gameObject.activeInHierarchy);
 		FindGenerators ();
+		FindSolarPanels ();
 	}
 
 	public void OnVesselUnload()
@@ -299,6 +326,21 @@ public class KethaneVesselScanner : VesselModule
 		PushEC (generatorEC * TimeWarp.fixedDeltaTime);
 	}
 
+	void RunSolarPanels ()
+	{
+		float distance = float.MaxValue;
+		var target = Planetarium.fetch.Sun;
+		var tgtScaled = target.scaledBody.transform;
+		var pos = ScaledSpace.LocalToScaledSpace(vessel.transform.position);
+		var tgt = ScaledSpace.LocalToScaledSpace(target.transform.position);
+		Ray ray = new Ray(pos, (tgt - pos).normalized);
+		RaycastHit hit;
+		if (!Physics.Raycast (ray, out hit, distance, planetLayerMask)
+			|| hit.transform == tgtScaled) {
+			PushEC (solarEC * TimeWarp.fixedDeltaTime);
+		}
+	}
+
 	void FixedUpdate ()
 	{
 		if (protoDetectors == null) {
@@ -352,6 +394,9 @@ public class KethaneVesselScanner : VesselModule
 		// when the vessel is loaded, let KSP deal with power generation
 		if (!vessel.loaded) {
 			RunGenerators ();
+			if (solarEC > 0) {
+				RunSolarPanels ();
+			}
 		}
 	}
 }
