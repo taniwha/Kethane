@@ -353,6 +353,7 @@ public class KethaneVesselScanner : VesselModule
 		var detected = false;
 		var ping = false;
 		isScanning = false;
+		var cell = MapOverlay.GetCellUnder(body, position);
 		for (int i = protoDetectors.Count; i-- > 0; ) {
 			var detector = protoDetectors[i];
 			if (!detector.IsDetecting) {
@@ -367,7 +368,6 @@ public class KethaneVesselScanner : VesselModule
 				detector.TimerEcho += TimeWarp.deltaTime * detector.powerRatio;
 				var TimerThreshold = detector.DetectingPeriod * (1 + Altitude * 2e-6);
 				if (detector.TimerEcho >= TimerThreshold) {
-					var cell = MapOverlay.GetCellUnder(body, position);
 					for (int j = detector.resources.Count; j-- > 0; ) {
 						var resource = detector.resources[j];
 						var data = KethaneData.Current[resource][body];
