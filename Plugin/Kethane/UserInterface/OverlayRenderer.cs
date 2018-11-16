@@ -17,6 +17,11 @@ namespace Kethane.UserInterface
         private float radiusMultiplier = 1;
         private Transform target = null;
 
+		private Vector3 []vertices;
+		private Color32 []colors32;
+		private int []triangles;
+		private bool colorsDirty;
+
         public bool IsVisible
         {
             get
@@ -36,10 +41,19 @@ namespace Kethane.UserInterface
         protected void Awake()
         {
             setUpComponents();
+			updateArrays();
             updateTriangles();
             updateVertices();
             updateTarget();
         }
+
+		protected void Update ()
+		{
+			if (colorsDirty) {
+				colorsDirty = false;
+				mesh.colors32 = colors32;
+			}
+		}
 
         #region Configuration setters
 
@@ -61,6 +75,7 @@ namespace Kethane.UserInterface
             if (gridLevel != this.gridLevel)
             {
                 this.gridLevel = gridLevel;
+				updateArrays();
                 updateTriangles();
             }
             else
@@ -97,9 +112,7 @@ namespace Kethane.UserInterface
 
         public void SetCellColor(Cell cell, Color32 color)
         {
-            var colors = mesh.colors32;
-            setCellColor(cell, color, colors);
-            mesh.colors32 = colors;
+            setCellColor(cell, color);
         }
 
         public void SetCellColors(IDictionary<Cell, Color32> assignments)
@@ -114,23 +127,20 @@ namespace Kethane.UserInterface
 
         private void setCellColors(IEnumerable<KeyValuePair<Cell, Color32>> assignments)
         {
-            var colors = mesh.colors32;
-
             foreach (var assignment in assignments)
             {
-                setCellColor(assignment.Key, assignment.Value, colors);
+                setCellColor(assignment.Key, assignment.Value);
             }
-
-            mesh.colors32 = colors;
         }
 
-        private static void setCellColor(Cell cell, Color32 color, Color32[] colors)
+        private void setCellColor(Cell cell, Color32 color)
         {
             var idx = cell.Index * 6;
             for (var i = idx; i < idx + 6; i++)
             {
-                colors[i] = color;
+                colors32[i] = color;
             }
+			colorsDirty = true;
         }
 
         #endregion
@@ -156,36 +166,53 @@ namespace Kethane.UserInterface
 			}
         }
 
+		private void updateArrays()
+		{
+            mesh.Clear();
+			uint faces = Cell.CountAtLevel(gridLevel);
+			vertices = new Vector3[faces * 6];
+			colors32 = new Color32[vertices.Length];
+			triangles = new int[3 * (4 * (faces - 12) + 5 * 12)];
+			mesh.vertices = vertices;
+			mesh.colors32 = colors32;
+		}
+
         private void updateTriangles()
         {
-            mesh.Clear();
-            mesh.vertices = new Vector3[Cell.CountAtLevel(gridLevel) * 6];
-            mesh.colors32 = new Color32[mesh.vertexCount];
-
-            var triangles = new List<int>();
-
+			int tri = 0;
             foreach (var cell in Cell.AtLevel(gridLevel))
             {
                 var t = (int)cell.Index * 6;
                 if (cell.IsPentagon)
                 {
-                    for (var i = 0; i < 5; i++)
+                    for (var i = 0; i < 5; i++, tri += 3)
                     {
-                        triangles.AddRange(new[] { t + 1 + i, t + 1 + (i + 1) % 5, t });
+						triangles[tri + 0] = t + 1 + i;
+						triangles[tri + 1] = t + 1 + (i + 1) % 5;
+						triangles[tri + 2] = t;
                     }
                 }
                 else
                 {
-                    triangles.AddRange(new[] { t + 0, t + 1, t + 2, t + 2, t + 3, t + 4, t + 4, t + 5, t + 0, t + 0, t + 2, t + 4 });
+                    for (var i = 0; i < 3; i++, tri += 3)
+					{
+						triangles[tri + 0] = t + 0 + i * 2;
+						triangles[tri + 1] = t + 1 + i * 2;
+						triangles[tri + 2] = t + (2 + i * 2) % 6;
+					}
+					triangles[tri + 0] = t + 0;
+					triangles[tri + 1] = t + 2;
+					triangles[tri + 2] = t + 4;
+					tri += 3;
                 }
             }
 
-            mesh.triangles = triangles.ToArray();
+            mesh.triangles = triangles;
         }
 
         private void updateVertices()
         {
-            var vertices = new List<UnityEngine.Vector3>();
+			int vert = 0;
 
             foreach (var cell in Cell.AtLevel(gridLevel))
             {
@@ -193,7 +220,7 @@ namespace Kethane.UserInterface
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(center);
+                    vertices[vert++] = center;
                 }
 
                 var blend = 0.08f;
@@ -201,11 +228,11 @@ namespace Kethane.UserInterface
 
                 foreach (var vertex in cell.GetVertices(gridLevel, heightMap))
                 {
-                    vertices.Add(center + vertex * (1 - blend));
+                    vertices[vert++] = center + vertex * (1 - blend);
                 }
             }
 
-            mesh.vertices = vertices.ToArray();
+            mesh.vertices = vertices;
             mesh.RecalculateBounds();
         }
 
