@@ -32,6 +32,9 @@ namespace Kethane.Generators
             public float RadiusVariance { get; private set; }
             public int DepositCount { get; private set; }
             public int NumberOfTries { get; private set; }
+            public bool CanReplenish { get; private set; }
+            public double MinHalfLife { get; private set; }
+            public double MaxHalfLife { get; private set; }
 
             private Dictionary<string, GeneratorConfiguration> bodies = new Dictionary<string, GeneratorConfiguration>();
 
@@ -62,6 +65,9 @@ namespace Kethane.Generators
                 RadiusVariance = Misc.Parse(node.GetValue("RadiusVariance"), RadiusVariance);
                 DepositCount = Misc.Parse(node.GetValue("DepositCount"), DepositCount);
                 NumberOfTries = Misc.Parse(node.GetValue("NumberOfTries"), NumberOfTries);
+                CanReplenish = Misc.Parse(node.GetValue("CanReplenish"), CanReplenish);
+                MinHalfLife = Misc.Parse(node.GetValue("MinHalfLife"), MinHalfLife);
+                MaxHalfLife = Misc.Parse(node.GetValue("MaxHalfLife"), MaxHalfLife);
             }
         }
 
@@ -98,10 +104,23 @@ namespace Kethane.Generators
                     }
                 }
 
+				if (resource.CanReplenish) {
+					// generated separately to allow updating older saves without messing with their deposites due to changes in the RNG sequence.
+					for (int i = 0; i < deposits.Count; i++)
+					{
+						deposits[i].HalfLife = random.Range(resource.MinHalfLife, resource.MaxHalfLife);
+					}
+				}
+
                 var depositValues = node.GetValues("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositValues.Length); i++)
                 {
-                    deposits[i].Quantity = Misc.Parse(depositValues[i], deposits[i].InitialQuantity);
+					var split = depositValues[i].Split(new []{',', ' '}, StringSplitOptions.RemoveEmptyEntries);
+                    deposits[i].Quantity = Misc.Parse(split[0], deposits[i].InitialQuantity);
+					if (split.Length >= 2 && resource.CanReplenish)
+					{
+						deposits[i].LastUT = Misc.Parse(split[1], deposits[i].LastUT);
+					}
                 }
 
                 MaxQuantity = resource.MaxQuantity;
@@ -155,12 +174,15 @@ namespace Kethane.Generators
 
             public double Quantity { get; set; }
             public double InitialQuantity { get; set; }
+            public double HalfLife { get; set; }
+            public double LastUT { get; set; }
 
             public Deposit(Polygon shape, double quantity, double initialQuantity)
             {
                 Shape = shape;
                 Quantity = quantity;
                 InitialQuantity = initialQuantity;
+				HalfLife = 0;
             }
 
             public static Deposit Generate(Vector2 Pos, float radius, System.Random random, GeneratorConfiguration resource)
