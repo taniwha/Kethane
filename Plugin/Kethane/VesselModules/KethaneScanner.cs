@@ -236,7 +236,7 @@ public class KethaneVesselScanner : VesselModule
 		PingDeposit = gameObject.AddComponent<AudioSource>();
 		PingDeposit.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_deposit");
 		PingDeposit.volume = 1;
-		PingEmpty.loop = false;
+		PingDeposit.loop = false;
 		PingDeposit.Stop();
 	}
 
