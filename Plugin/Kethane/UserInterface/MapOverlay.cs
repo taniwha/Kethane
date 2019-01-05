@@ -131,6 +131,11 @@ namespace Kethane.UserInterface
             }
         }
 
+		public void ClearBody ()
+		{
+			body = null;
+		}
+
         public void Update()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)

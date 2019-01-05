@@ -44,6 +44,9 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
+			if (UserInterface.MapOverlay.Instance != null) {
+				UserInterface.MapOverlay.Instance.ClearBody ();
+			}
         }
 
         public override void OnSave(ConfigNode configNode)
