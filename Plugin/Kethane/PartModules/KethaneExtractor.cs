@@ -163,39 +163,27 @@ namespace Kethane.PartModules
 
             if (!HighLogic.LoadedSceneIsFlight) { return; }
 
-            if (animator.CurrentState != ExtractorState.Retracted)
-            {
+            if (animator.CurrentState != ExtractorState.Retracted) {
                 RaycastHit hitInfo;
                 var hit = raycastGround(out hitInfo);
 
-                foreach (var emitter in emitters.Where(e => e.Label != "gas"))
-                {
-                    emitter.Emit = hit;
-                }
-                if (hit)
-                {
-                    foreach (var emitter in emitters)
-                    {
+				foreach (var emitter in emitters) {
+					if (hit) {
                         emitter.EmitterPosition = headTransform.InverseTransformPoint(hitInfo.point);
-                    }
-                }
-
-                foreach (var emitter in emitters.Where(e => e.Label == "gas"))
-                {
-                    if (animator.CurrentState == ExtractorState.Deployed)
-                    {
-                        emitter.Emit = hit && getBodyResources("Kethane").GetQuantity(getCellUnder()) != null;
-                    }
-                    else
-                    {
-                        emitter.Emit = false;
-                    }
-                }
-            }
-            else
-            {
-                foreach (var emitter in emitters)
-                {
+					}
+					if (emitter.Label != "gas") {
+						emitter.Emit = hit;
+					} else {
+						var bodyResource = getBodyResources("Kethane");
+						if (bodyResource != null && animator.CurrentState == ExtractorState.Deployed) {
+							emitter.Emit = hit && bodyResource.GetQuantity(getCellUnder()) != null;
+						} else {
+							emitter.Emit = false;
+						}
+					}
+				}
+            } else {
+                foreach (var emitter in emitters) {
                     emitter.Emit = false;
                 }
             }
@@ -209,16 +197,17 @@ namespace Kethane.PartModules
             double energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
             double energyRatio = this.part.RequestResource("ElectricCharge", energyRequest) / energyRequest;
 
-            foreach (var resource in resources)
-            {
+            foreach (var resource in resources) {
                 var cell = getCellUnder();
                 var bodyResources = getBodyResources(resource.Name);
-                var deposit = bodyResources.GetQuantity(cell);
-                if (deposit == null) { continue; }
+				if (bodyResources != null) {
+					var deposit = bodyResources.GetQuantity(cell);
+					if (deposit == null) { continue; }
 
-                double amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
-                amount = Math.Min(amount, deposit.Value);
-                bodyResources.Extract(cell, -this.part.RequestResource(resource.Name, -amount));
+					double amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
+					amount = Math.Min(amount, deposit.Value);
+					bodyResources.Extract(cell, -this.part.RequestResource(resource.Name, -amount));
+				}
             }
         }
 
@@ -229,6 +218,9 @@ namespace Kethane.PartModules
 
         private IBodyResources getBodyResources(string resourceName)
         {
+			if (KethaneData.Current == null) {
+				return null;
+			}
             return KethaneData.Current[resourceName][this.vessel.mainBody].Resources;
         }
 
