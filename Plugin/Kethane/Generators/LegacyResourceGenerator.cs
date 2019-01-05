@@ -79,6 +79,7 @@ namespace Kethane.Generators
             private static System.Random seedGenerator = new System.Random();
 
             public double MaxQuantity { get; private set; }
+            public bool CanReplenish { get; private set; }
 
             public BodyDeposits(GeneratorConfiguration resource, ConfigNode node)
             {
@@ -124,6 +125,7 @@ namespace Kethane.Generators
                 }
 
                 MaxQuantity = resource.MaxQuantity;
+                CanReplenish = resource.CanReplenish;
             }
 
             private Deposit getDeposit(Cell cell)
@@ -162,7 +164,11 @@ namespace Kethane.Generators
                 node.AddValue("Seed", seed);
                 foreach (var deposit in deposits)
                 {
-                    node.AddValue("Deposit", deposit.Quantity);
+					if (CanReplenish) {
+						node.AddValue("Deposit", $"{deposit.Quantity:G17},{deposit.LastUT:G17}");
+					} else {
+						node.AddValue("Deposit", deposit.Quantity);
+					}
                 }
                 return node;
             }
