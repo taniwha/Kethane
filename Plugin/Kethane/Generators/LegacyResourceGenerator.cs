@@ -109,7 +109,9 @@ namespace Kethane.Generators
 					// generated separately to allow updating older saves without messing with their deposites due to changes in the RNG sequence.
 					for (int i = 0; i < deposits.Count; i++)
 					{
-						deposits[i].HalfLife = random.Range(resource.MinHalfLife, resource.MaxHalfLife);
+						// MinHalfLife and MaxHalfLife are specified in hours
+						double halflife = 3600 * random.Range(resource.MinHalfLife, resource.MaxHalfLife);
+						deposits[i].Lambda = Math.Log(2) / halflife;
 					}
 				}
 
@@ -180,7 +182,7 @@ namespace Kethane.Generators
 
             public double Quantity { get; set; }
             public double InitialQuantity { get; set; }
-            public double HalfLife { get; set; }
+            public double Lambda { get; set; }
             public double LastUT { get; set; }
 
             public Deposit(Polygon shape, double quantity, double initialQuantity)
@@ -188,7 +190,7 @@ namespace Kethane.Generators
                 Shape = shape;
                 Quantity = quantity;
                 InitialQuantity = initialQuantity;
-				HalfLife = 0;
+				Lambda = 0;
             }
 
             public static Deposit Generate(Vector2 Pos, float radius, System.Random random, GeneratorConfiguration resource)
