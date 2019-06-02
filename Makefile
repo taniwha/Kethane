@@ -19,6 +19,8 @@ all clean install:
 	@for dir in ${SUBDIRS}; do \
 		make -C $$dir $@ || exit 1; \
 	done
+	mkdir -p ${KGAMEDATA}/Resources
+	cp Resources/Kethane.cfg ${KGAMEDATA}/Resources
 
 info:
 	@echo "Extraplanetary Launchpads Build Information"
