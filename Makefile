@@ -15,12 +15,17 @@ ZIP		:= zip
 
 SUBDIRS=AssetBundles Parts Plugin/Kethane
 
-all clean install:
+all clean:
 	@for dir in ${SUBDIRS}; do \
 		make -C $$dir $@ || exit 1; \
 	done
+
+install:
 	mkdir -p ${KGAMEDATA}/Resources
 	cp Resources/Kethane.cfg ${KGAMEDATA}/Resources
+	@for dir in ${SUBDIRS}; do \
+		make -C $$dir $@ || exit 1; \
+	done
 
 info:
 	@echo "Extraplanetary Launchpads Build Information"
