@@ -86,7 +86,7 @@ bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt
 	${MCS} ${MCSFLAGS} -t:library -lib:"${MANAGED}" \
 		-r:Assembly-CSharp,Assembly-CSharp-firstpass \
 		-r:KSPAssets \
-		-r:UnityEngine,UnityEngine.UI \
+		-r:UnityEngine,UnityEngine.UI,UnityEngine.CoreModule,UnityEngine.AnimationModule,UnityEngine.PhysicsModule,UnityEngine.IMGUIModule,UnityEngine.AudioModule \
 		-lib:../../../GeodesicGrid/bin \
 		-r:GeodesicGrid \
 		-resource:Kethane-LICENSE.txt,Kethane.Kethane-LICENSE.txt \
