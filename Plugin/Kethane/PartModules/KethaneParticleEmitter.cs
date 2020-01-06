@@ -20,59 +20,47 @@ namespace Kethane.PartModules
             set { renderer.cameraVelocityScale = value; }
         }
 
+		public Color GetColorKey(int ind)
+		{
+			Color c = colorGradient.colorKeys[ind].color;
+			c.a = colorGradient.alphaKeys[ind].alpha;
+			return c;
+		}
+
+		public void SetColorKey(int ind, Color c)
+		{
+			colorGradient.colorKeys[ind].color = c;
+			colorGradient.alphaKeys[ind].alpha = c.a;
+		}
+
         public Color ColorAnimation1
         {
-            get { return animator.colorAnimation[0]; }
-            set
-            {
-                var colors = animator.colorAnimation;
-                colors[0] = value;
-                animator.colorAnimation = colors;
-            }
+            get { return GetColorKey(0); }
+            set { SetColorKey(0, value); }
         }
 
         public Color ColorAnimation2
         {
-            get { return animator.colorAnimation[1]; }
-            set
-            {
-                var colors = animator.colorAnimation;
-                colors[1] = value;
-                animator.colorAnimation = colors;
-            }
+            get { return GetColorKey(1); }
+            set { SetColorKey(1, value); }
         }
 
         public Color ColorAnimation3
         {
-            get { return animator.colorAnimation[2]; }
-            set
-            {
-                var colors = animator.colorAnimation;
-                colors[2] = value;
-                animator.colorAnimation = colors;
-            }
+            get { return GetColorKey(2); }
+            set { SetColorKey(2, value); }
         }
 
         public Color ColorAnimation4
         {
-            get { return animator.colorAnimation[3]; }
-            set
-            {
-                var colors = animator.colorAnimation;
-                colors[3] = value;
-                animator.colorAnimation = colors;
-            }
+            get { return GetColorKey(3); }
+            set { SetColorKey(3, value); }
         }
 
         public Color ColorAnimation5
         {
-            get { return animator.colorAnimation[4]; }
-            set
-            {
-                var colors = animator.colorAnimation;
-                colors[4] = value;
-                animator.colorAnimation = colors;
-            }
+            get { return GetColorKey(4); }
+            set { SetColorKey(4, value); }
         }
 
         public float Damping
@@ -83,14 +71,17 @@ namespace Kethane.PartModules
 
         public bool Emit
         {
-            get { return emitter.emit; }
-            set { emitter.emit = value; }
+            get { return emission.enabled; }
+            set { emission.enabled = value; }
         }
 
         public float EmitterVelocityScale
         {
-            get { return emitter.emitterVelocityScale; }
-            set { emitter.emitterVelocityScale = value; }
+            get { return inheritVelocity.enabled ? inheritVelocity.curve : 0; }
+            set {
+				inheritVelocity.enabled = !Mathf.Approximately(value, 0.0f);
+				inheritVelocity.curve = inheritVelocity.enabled ? value : 0.0f;
+			}
         }
 
         public Vector3 Force
@@ -183,7 +174,7 @@ namespace Kethane.PartModules
             set { emitter.rndVelocity = value; }
         }
 
-        public ParticleRenderMode RenderMode
+        public ParticleSystemRenderMode RenderMode
         {
             get { return renderer.particleRenderMode; }
             set { renderer.particleRenderMode = value; }
@@ -197,26 +188,14 @@ namespace Kethane.PartModules
 
         public bool UseWorldSpace
         {
-            get { return emitter.useWorldSpace; }
-            set { emitter.useWorldSpace = value; }
+            get { return main.simulationSpace == ParticleSystemSimulationSpace.World; }
+            set { main.simulationSpace = value ? ParticleSystemSimulationSpace.World : ParticleSystemSimulationSpace.Local; }
         }
 
         public float VelocityScale
         {
             get { return renderer.velocityScale; }
             set { renderer.velocityScale = value; }
-        }
-
-        public Vector3 WorldRotationAxis
-        {
-            get { return animator.worldRotationAxis; }
-            set { animator.worldRotationAxis = value; }
-        }
-
-        public Vector3 WorldVelocity
-        {
-            get { return emitter.worldVelocity; }
-            set { emitter.worldVelocity = value; }
         }
 
         #endregion
@@ -240,7 +219,7 @@ namespace Kethane.PartModules
 
         public int ParticleCount
         {
-            get { return emitter.particleCount; }
+            get { return psystem.particleCount; }
         }
 
         [KSPField(isPersistant = false)]
@@ -249,9 +228,18 @@ namespace Kethane.PartModules
         public string configString;
 
         private GameObject obj;
-        private ParticleAnimator animator;
-        private ParticleEmitter emitter;
-        private ParticleRenderer renderer;
+		private ParticleSystem psystem;
+        private ParticleSystem.MainModule main;
+        private ParticleSystem.EmissionModule emission;
+        private ParticleSystem.ShapeModule shape;
+        private ParticleSystem.InheritVelocityModule inheritVelocity;
+		private Gradient colorGradient;
+        private ParticleSystem.ColorOverLifetimeModule colorOverLifetime;
+        private ParticleSystem.ForceOverLifetimeModule forceOverLifetime;
+        private ParticleSystem.RotationOverLifetimeModule rotationOverLifetime;
+        private ParticleSystem.SizeOverLifetimeModule sizeOverLifetime;
+        private ParticleSystem.VelocityOverLifetimeModule velocityOverLifetime;
+        private ParticleSystemRenderer renderer;
 
         public override void OnLoad(ConfigNode config)
         {
@@ -284,16 +272,40 @@ namespace Kethane.PartModules
             obj.transform.parent = part.transform;
             obj.transform.localRotation = Quaternion.identity;
 
-            animator = (ParticleAnimator)obj.AddComponent<ParticleAnimator>();
-            emitter = (ParticleEmitter)obj.AddComponent<MeshParticleEmitter>();
-            renderer = (ParticleRenderer)obj.AddComponent<ParticleRenderer>();
+			psystem = obj.AddComponent<ParticleSystem>();
+			main = psystem.main;
+			emission = psystem.emission;
+			shape = psystem.shape;
+			inheritVelocity = psystem.inheritVelocity;
+			colorOverLifetime = psystem.colorOverLifetime;
+			forceOverLifetime = psystem.forceOverLifetime;
+			rotationOverLifetime = psystem.rotationOverLifetime;
+			sizeOverLifetime = psystem.sizeOverLifetime;
+			velocityOverLifetime = psystem.velocityOverLifetime;
+            renderer = obj.GetComponent<ParticleSystemRenderer>();
 
             var material = new Material(Shader.Find(shaderName));
             material.mainTexture = GameDatabase.Instance.GetTexture(textureName, false);
             material.color = Color.white;
 
             renderer.materials = new Material[] { material };
-            animator.colorAnimation = new Color[5];
+			colorGradient = new Gradient();
+			colorGradient.colorKeys = new GradientColorKey[] {
+				new GradientColorKey(Color.black, 0.0f),
+				new GradientColorKey(Color.black, 0.25f),
+				new GradientColorKey(Color.black, 0.5f),
+				new GradientColorKey(Color.black, 0.75f),
+				new GradientColorKey(Color.black, 1.0f),
+			};
+			colorGradient.alphaKeys = new GradientAlphaKey[] {
+				new GradientAlphaKey(0, 0.0f),
+				new GradientAlphaKey(0, 0.25f),
+				new GradientAlphaKey(0, 0.5f),
+				new GradientAlphaKey(0, 0.75f),
+				new GradientAlphaKey(0, 1.0f),
+			};
+			colorOverLifetime.enabled = true;
+			colorOverLifetime.color = new ParticleSystem.MinMaxGradient(colorGradient);
 
             //if (Misc.Parse(config.GetValue("Collision"), false))
             //{
@@ -312,7 +324,6 @@ namespace Kethane.PartModules
             EmitterVelocityScale    = Misc.Parse(config.GetValue("EmitterVelocityScale"), 1f);
             Force                   = Misc.Parse(config.GetValue("Force"), Vector3.zero);
             LengthScale             = Misc.Parse(config.GetValue("LengthScale"), 1f);
-            LocalRotationAxis       = Misc.Parse(config.GetValue("LocalRotationAxis"), Vector3.zero);
             LocalVelocity           = Misc.Parse(config.GetValue("LocalVelocity"), Vector3.zero);
             MaxEmission             = Misc.Parse(config.GetValue("MaxEmission"), 0f);
             MaxEnergy               = Misc.Parse(config.GetValue("MaxEnergy"), 0f);
@@ -325,12 +336,10 @@ namespace Kethane.PartModules
             RandomForce             = Misc.Parse(config.GetValue("RandomForce"), Vector3.zero);
             RandomRotation          = Misc.Parse(config.GetValue("RandomRotation"), false);
             RandomVelocity          = Misc.Parse(config.GetValue("RandomVelocity"), Vector3.zero);
-            RenderMode              = Misc.Parse(config.GetValue("RenderMode"), ParticleRenderMode.Billboard);
+            RenderMode              = Misc.Parse(config.GetValue("RenderMode"), ParticleSystemRenderMode.Billboard);
             SizeGrow                = Misc.Parse(config.GetValue("SizeGrow"), 0f);
             UseWorldSpace           = Misc.Parse(config.GetValue("UseWorldSpace"), false);
             VelocityScale           = Misc.Parse(config.GetValue("VelocityScale"), 0f);
-            WorldRotationAxis       = Misc.Parse(config.GetValue("WorldRotationAxis"), Vector3.zero);
-            WorldVelocity           = Misc.Parse(config.GetValue("WorldVelocity"), Vector3.zero);
 
             EmitterPosition         = Misc.Parse(config.GetValue("EmitterPosition"), Vector3.zero);
             EmitterScale            = Misc.Parse(config.GetValue("EmitterScale"), Vector3.zero);

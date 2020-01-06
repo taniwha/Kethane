@@ -77,11 +77,11 @@ namespace Kethane
             return (ConfigNode) RecurseFormat.Invoke(null, new object[] {obj});
         }
 
-        public static ParticleRenderMode Parse(string s, ParticleRenderMode defaultValue)
+        public static ParticleSystemRenderMode Parse(string s, ParticleSystemRenderMode defaultValue)
         {
             try
             {
-                return (ParticleRenderMode)Enum.Parse(typeof(ParticleRenderMode), s);
+                return (ParticleSystemRenderMode)Enum.Parse(typeof(ParticleSystemRenderMode), s);
             }
             catch
             {
