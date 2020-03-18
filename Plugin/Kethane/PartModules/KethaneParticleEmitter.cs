@@ -9,10 +9,10 @@ namespace Kethane.PartModules
         #region Particle property bindings
 
         public float AngularVelocity
-        {
+        ;/*{	XXX
             get { return emitter.angularVelocity; }
             set { emitter.angularVelocity = value; }
-        }
+        }*/
 
         public float CameraVelocityScale
         {
@@ -64,10 +64,10 @@ namespace Kethane.PartModules
         }
 
         public float Damping
-        {
+        ;/*{	XXX
             get { return animator.damping; }
             set { animator.damping = value; }
-        }
+        }*/
 
         public bool Emit
         {
@@ -77,7 +77,7 @@ namespace Kethane.PartModules
 
         public float EmitterVelocityScale
         {
-            get { return inheritVelocity.enabled ? inheritVelocity.curve : 0; }
+            get { return inheritVelocity.enabled ? inheritVelocity.curve.constant : 0; }
             set {
 				inheritVelocity.enabled = !Mathf.Approximately(value, 0.0f);
 				inheritVelocity.curve = inheritVelocity.enabled ? value : 0.0f;
@@ -85,10 +85,10 @@ namespace Kethane.PartModules
         }
 
         public Vector3 Force
-        {
+        ;/*{	XXX
             get { return animator.force; }
             set { animator.force = value; }
-        }
+        }*/
 
         public float LengthScale
         {
@@ -97,28 +97,28 @@ namespace Kethane.PartModules
         }
 
         public Vector3 LocalRotationAxis
-        {
+        ;/*{	XXX
             get { return animator.localRotationAxis; }
             set { animator.localRotationAxis = value; }
-        }
+        }*/
 
         public Vector3 LocalVelocity
-        {
+        ;/*{	XXX
             get { return emitter.localVelocity; }
             set { emitter.localVelocity = value; }
-        }
+        }*/
 
         public float MaxEmission
-        {
+        ;/*{	XXX
             get { return emitter.maxEmission; }
             set { emitter.maxEmission = value; }
-        }
+        }*/
 
         public float MaxEnergy
-        {
+        ;/*{	XXX
             get { return emitter.maxEnergy; }
             set { emitter.maxEnergy = value; }
-        }
+        }*/
 
         public float MaxParticleSize
         {
@@ -127,64 +127,64 @@ namespace Kethane.PartModules
         }
 
         public float MaxSize
-        {
+        ;/*{	XXX
             get { return emitter.maxSize; }
             set { emitter.maxSize = value; }
-        }
+        }*/
 
         public float MinEmission
-        {
+        ;/*{	XXX
             get { return emitter.minEmission; }
             set { emitter.minEmission = value; }
-        }
+        }*/
 
         public float MinEnergy
-        {
+        ;/*{	XXX
             get { return emitter.minEnergy; }
             set { emitter.minEnergy = value; }
-        }
+        }*/
 
         public float MinSize
-        {
+        ;/*{	XXX
             get { return emitter.minSize; }
             set { emitter.minSize = value; }
-        }
+        }*/
 
         public float RandomAngularVelocity
-        {
+        ;/*{	XXX
             get { return emitter.rndAngularVelocity; }
             set { emitter.rndAngularVelocity = value; }
-        }
+        }*/
 
         public Vector3 RandomForce
-        {
+        ;/*{	XXX
             get { return animator.rndForce; }
             set { animator.rndForce = value; }
-        }
+        }*/
 
         public bool RandomRotation
-        {
+        ;/*{	XXX
             get { return emitter.rndRotation; }
             set { emitter.rndRotation = value; }
-        }
+        }*/
 
         public Vector3 RandomVelocity
-        {
+        ;/*{	XXX
             get { return emitter.rndVelocity; }
             set { emitter.rndVelocity = value; }
-        }
+        }*/
 
         public ParticleSystemRenderMode RenderMode
-        {
+        ;/*{	XXX
             get { return renderer.particleRenderMode; }
             set { renderer.particleRenderMode = value; }
-        }
+        }*/
 
         public float SizeGrow
-        {
+        ;/*{	XXX
             get { return animator.sizeGrow; }
             set { animator.sizeGrow = value; }
-        }
+        }*/
 
         public bool UseWorldSpace
         {
@@ -231,14 +231,14 @@ namespace Kethane.PartModules
 		private ParticleSystem psystem;
         private ParticleSystem.MainModule main;
         private ParticleSystem.EmissionModule emission;
-        private ParticleSystem.ShapeModule shape;
+        //XXX private ParticleSystem.ShapeModule shape;
         private ParticleSystem.InheritVelocityModule inheritVelocity;
 		private Gradient colorGradient;
         private ParticleSystem.ColorOverLifetimeModule colorOverLifetime;
-        private ParticleSystem.ForceOverLifetimeModule forceOverLifetime;
-        private ParticleSystem.RotationOverLifetimeModule rotationOverLifetime;
-        private ParticleSystem.SizeOverLifetimeModule sizeOverLifetime;
-        private ParticleSystem.VelocityOverLifetimeModule velocityOverLifetime;
+        //XXX private ParticleSystem.ForceOverLifetimeModule forceOverLifetime;
+        //XXX private ParticleSystem.RotationOverLifetimeModule rotationOverLifetime;
+        //XXX private ParticleSystem.SizeOverLifetimeModule sizeOverLifetime;
+        //XXX private ParticleSystem.VelocityOverLifetimeModule velocityOverLifetime;
         private ParticleSystemRenderer renderer;
 
         public override void OnLoad(ConfigNode config)
@@ -275,13 +275,13 @@ namespace Kethane.PartModules
 			psystem = obj.AddComponent<ParticleSystem>();
 			main = psystem.main;
 			emission = psystem.emission;
-			shape = psystem.shape;
+			//XXX shape = psystem.shape;
 			inheritVelocity = psystem.inheritVelocity;
 			colorOverLifetime = psystem.colorOverLifetime;
-			forceOverLifetime = psystem.forceOverLifetime;
-			rotationOverLifetime = psystem.rotationOverLifetime;
-			sizeOverLifetime = psystem.sizeOverLifetime;
-			velocityOverLifetime = psystem.velocityOverLifetime;
+			//XXX forceOverLifetime = psystem.forceOverLifetime;
+			//XXX rotationOverLifetime = psystem.rotationOverLifetime;
+			//XXX sizeOverLifetime = psystem.sizeOverLifetime;
+			//XXX velocityOverLifetime = psystem.velocityOverLifetime;
             renderer = obj.GetComponent<ParticleSystemRenderer>();
 
             var material = new Material(Shader.Find(shaderName));
