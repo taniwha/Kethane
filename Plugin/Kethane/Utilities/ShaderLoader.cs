@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
 using KSPAssets.Loaders;
 
 namespace Kethane.ShaderLoader
@@ -44,28 +45,23 @@ namespace Kethane.ShaderLoader
             if (shaderDictionary == null) {
                 shaderDictionary = new Dictionary<string, Shader>();
 				string root = KSPUtil.ApplicationRootPath;
-				string url = "file://" + root + gamedata + kethane_bundle;
+				string path = root + gamedata + kethane_bundle;
 
-                using (WWW www = new WWW(url)) {
-                    if (www.error != null) {
-                        Debug.LogFormat("[Kethane] {0} not found!",
-										kethane_bundle);
-                        return;
-                    }
+				var bundle = AssetBundle.LoadFromFile(path);
+				if (!bundle) {
+					Debug.LogFormat("[Kethane] Could not load {0}",
+									kethane_bundle);
+					return;
+				}
 
-                    AssetBundle bundle = www.assetBundle;
+				Shader[] shaders = bundle.LoadAllAssets<Shader>();
 
-                    Shader[] shaders = bundle.LoadAllAssets<Shader>();
-
-                    foreach (Shader shader in shaders) {
-                        Debug.LogFormat ("[Kethane] Shader {0} loaded",
-										 shader.name);
-                        shaderDictionary[shader.name] = shader;
-                    }
-
-                    bundle.Unload(false);
-                    www.Dispose();
-                }
+				foreach (Shader shader in shaders) {
+					Debug.LogFormat ("[Kethane] Shader {0} loaded",
+									 shader.name);
+					shaderDictionary[shader.name] = shader;
+				}
+				bundle.Unload(false);
 
                 loaded = true;
             }

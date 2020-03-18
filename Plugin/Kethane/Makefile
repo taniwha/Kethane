@@ -86,7 +86,19 @@ bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt
 	${MCS} ${MCSFLAGS} -t:library -lib:"${MANAGED}" \
 		-r:Assembly-CSharp,Assembly-CSharp-firstpass \
 		-r:KSPAssets \
-		-r:UnityEngine,UnityEngine.UI,UnityEngine.CoreModule,UnityEngine.AnimationModule,UnityEngine.PhysicsModule,UnityEngine.IMGUIModule,UnityEngine.AudioModule,UnityEngine.ParticleSystemModule,UnityEngine.TextRenderingModule,UnityEngine.InputLegacyModule,UnityEngine.UnityWebRequestWWWModule,UnityEngine.AssetBundleModule \
+		-r:UnityEngine \
+		-r:UnityEngine.UI \
+		-r:UnityEngine.CoreModule \
+		-r:UnityEngine.AnimationModule \
+		-r:UnityEngine.PhysicsModule \
+		-r:UnityEngine.IMGUIModule \
+		-r:UnityEngine.AudioModule \
+		-r:UnityEngine.ParticleSystemModule \
+		-r:UnityEngine.TextRenderingModule \
+		-r:UnityEngine.InputLegacyModule \
+		-r:UnityEngine.UnityWebRequestWWWModule \
+		-r:UnityEngine.UnityWebRequestModule \
+		-r:UnityEngine.AssetBundleModule \
 		-lib:../../../GeodesicGrid/bin \
 		-r:GeodesicGrid \
 		-resource:Kethane-LICENSE.txt,Kethane.Kethane-LICENSE.txt \
