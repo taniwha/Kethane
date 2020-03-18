@@ -4,31 +4,84 @@ using UnityEngine;
 
 namespace Kethane.UserInterface
 {
+    [KSPAddon(KSPAddon.Startup.Instantly, true)]
+	internal class MainMenuUpdateCatcher : MonoBehaviour
+	{
+		public static GameObject MenuBody = null;
+
+        protected void Start()
+        {
+			if (Utilities.Kopernicus.KopernicusWrapper.Initialize()) {
+				Utilities.Kopernicus.Events.OnRuntimeUtilityUpdateMenu.Add (UpdateMenu);
+			}
+			GameObject.DontDestroyOnLoad(this);
+		}
+
+		void OnDestroy ()
+		{
+			if (Utilities.Kopernicus.KopernicusWrapper.Initialize()) {
+				Utilities.Kopernicus.Events.OnRuntimeUtilityUpdateMenu.Remove (UpdateMenu);
+			}
+		}
+
+		void UpdateMenu ()
+		{
+			// if we're in here, Kopernicus is known to have set up a main menu body and thus various safety checks have already been done
+			MainMenu main = FindObjectOfType<MainMenu>();
+			MainMenuEnvLogic logic = main.envLogic;
+			GameObject space = logic.areas[1];
+			string menuBody = Utilities.Kopernicus.Templates.MenuBody;
+			foreach (Transform t in space.transform) {
+				if (t.gameObject.activeInHierarchy && t.name == menuBody) {
+					Debug.Log ($"[Kethane] UpdateMenu: {t.name}");
+					MenuBody = t.gameObject;
+				}
+			}
+		}
+	}
+
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     internal class MainMenuOverlay : MonoBehaviour
     {
-        protected void Start()
-        {
-            var overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
-            overlayRenderer.SetGridLevel(KethaneData.GridLevel);
-            overlayRenderer.IsVisible = startMenuOverlay(overlayRenderer);
-        }
-
-        private bool startMenuOverlay(OverlayRenderer overlayRenderer)
-        {
-            if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
-
+		private GameObject FindKerbin ()
+		{
             var objects = GameObject.FindObjectsOfType(typeof(GameObject));
-            if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
+            if (objects.Any(o => o.name == "LoadingBuffer")) { return null; }
             var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
 
             if (kerbin == null)
             {
                 Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
-                return false;
             }
+			return kerbin;
+		}
 
-            overlayRenderer.SetTarget(kerbin.transform);
+        protected void Start()
+        {
+			if (Utilities.Kopernicus.KopernicusWrapper.Initialize()) {
+				if (MainMenuUpdateCatcher.MenuBody != null) {
+					// Kopernicus already fixed things up
+					Debug.Log ($"[Kethane] adding overlay to: {MainMenuUpdateCatcher.MenuBody.transform.name}");
+					var overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
+					overlayRenderer.SetGridLevel(KethaneData.GridLevel);
+					overlayRenderer.IsVisible = startMenuOverlay(overlayRenderer, MainMenuUpdateCatcher.MenuBody);
+				}
+			} else {
+				var overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
+				overlayRenderer.SetGridLevel(KethaneData.GridLevel);
+				overlayRenderer.IsVisible = startMenuOverlay(overlayRenderer, FindKerbin ());
+			}
+        }
+
+        private bool startMenuOverlay(OverlayRenderer overlayRenderer, GameObject menuBody)
+        {
+            if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
+			if (menuBody == null) {
+				return false;
+			}
+
+
+            overlayRenderer.SetTarget(menuBody.transform);
             overlayRenderer.SetRadiusMultiplier(1.02f);
 
             var random = new System.Random();

@@ -46,6 +46,7 @@ K_FILES := \
 	Utilities/CompatibilityChecker.cs	\
 	Utilities/InstallChecker.cs	\
 	Utilities/InstallCleanup.cs	\
+	Utilities/KopernicusWrapper.cs	\
 	Utilities/LicenseSentinel.cs	\
 	Utilities/ShaderLoader.cs \
 	Utilities/TutorialInstaller.cs	\
