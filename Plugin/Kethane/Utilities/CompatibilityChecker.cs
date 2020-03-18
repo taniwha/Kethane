@@ -65,7 +65,7 @@ namespace Kethane.Utilities
             // can expect a future update to be available.
             //
             return (Versioning.version_major == 1
-            		&& Versioning.version_minor == 7);
+            		&& Versioning.version_minor == 9);
 
             /*-----------------------------------------------*\
             | IMPLEMENTERS SHOULD NOT EDIT BEYOND THIS POINT! |
