@@ -27,6 +27,6 @@ info:
 
 install: all
 	mkdir -p "${KGAMEDATA}"
-	cp kethane-*.ksp "${KGAMEDATA}"
+	cp kethane.ksp "${KGAMEDATA}"
 
 .PHONY: all clean info install

@@ -10,8 +10,8 @@ class BuildABs {
         var outDir = "../AssetBundles";
         var opts = BuildAssetBundleOptions.DeterministicAssetBundle
             | BuildAssetBundleOptions.ForceRebuildAssetBundle;
-        BuildTarget[] platforms = { BuildTarget.StandaloneWindows, BuildTarget.StandaloneOSX, BuildTarget.StandaloneLinux64 };
-        string[] platformExts = { "-windows", "-macosx", "-linux" };
+        BuildTarget[] platforms = { BuildTarget.StandaloneWindows, };
+        string[] platformExts = { "", "-windows", "-macosx", "-linux" };
         for (var i = 0; i < platforms.Length; ++i) {
 			Debug.Log($"AB: {platforms[i]}");
             BuildPipeline.BuildAssetBundles(outDir, opts, platforms[i]);

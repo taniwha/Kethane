@@ -1,5 +1,6 @@
 Assembly-CSharp-Editor.csproj
 Library/
+Packages/
 Shaders.sln
 Shaders.userprefs
 UnityPackageManager/

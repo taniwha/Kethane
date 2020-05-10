@@ -25,22 +25,7 @@ namespace Kethane.ShaderLoader
 
         private void LoadShaders()
         {
-			string kethane_bundle = "kethane-linux.ksp";
-
-			switch (Environment.OSVersion.Platform) {
-				case PlatformID.Win32NT:
-					kethane_bundle = "kethane-windows.ksp";
-					break;
-				case PlatformID.MacOSX:
-					kethane_bundle = "kethane-macosx.ksp";
-					break;
-				case PlatformID.Unix:
-					kethane_bundle = "kethane-linux.ksp";
-					break;
-				default:
-					Debug.LogFormat ("[Kethane] unknown platform: {0}", Environment.OSVersion.Platform);
-					break;
-			}
+			string kethane_bundle = "kethane.ksp";
 
             if (shaderDictionary == null) {
                 shaderDictionary = new Dictionary<string, Shader>();
