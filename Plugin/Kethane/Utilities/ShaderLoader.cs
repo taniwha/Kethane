@@ -9,6 +9,8 @@ using UnityEngine;
 using UnityEngine.Networking;
 using KSPAssets.Loaders;
 
+using KethaneParticles;
+
 namespace Kethane.ShaderLoader
 {
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
@@ -20,6 +22,7 @@ namespace Kethane.ShaderLoader
 
         private void Start()
         {
+			ParticleSystemCfg.FindShader = FindShader;
             LoadShaders();
         }
 

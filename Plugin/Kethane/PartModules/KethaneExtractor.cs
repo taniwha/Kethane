@@ -84,13 +84,6 @@ namespace Kethane.PartModules
             if (FlightGlobals.fetch == null) { return; }
 
             emitters = part.Modules.OfType<KethaneParticleEmitter>().ToArray();
-
-            foreach (var emitter in emitters)
-            {
-                emitter.Setup();
-                emitter.EmitterTransform.parent = headTransform;
-                emitter.EmitterTransform.localRotation = Quaternion.identity;
-            }
         }
 
         public override void OnLoad(ConfigNode config)
@@ -169,7 +162,7 @@ namespace Kethane.PartModules
 
 				foreach (var emitter in emitters) {
 					if (hit) {
-                        emitter.EmitterPosition = headTransform.InverseTransformPoint(hitInfo.point);
+                        emitter.Position = hitInfo.point;
 					}
 					if (emitter.Label != "gas") {
 						emitter.Emit = hit;

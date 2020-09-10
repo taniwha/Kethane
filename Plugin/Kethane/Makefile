@@ -15,6 +15,8 @@ K_FILES := \
 	KethaneController.cs	\
 	KethaneData.cs	\
 	Misc.cs	\
+	Particles/ParticleManager.cs \
+	Particles/ParticlePhysics.cs \
 	PartModules/HeatSinkAnimator.cs	\
 	PartModules/IDetectorAnimator.cs	\
 	PartModules/IExtractorAnimator.cs	\
@@ -27,7 +29,6 @@ K_FILES := \
 	PartModules/KethaneExtractor.cs	\
 	PartModules/KethaneGenerator.cs	\
 	PartModules/KethaneKerbalBlender.cs	\
-	PartModules/KethaneParticleDynamics.cs	\
 	PartModules/KethaneParticleEmitter.cs	\
 	PartModules/KethaneWetMassIndicator.cs	\
 	PartModules/OrthogonalIntake.cs	\
@@ -111,6 +112,7 @@ UNITY := \
 Kethane.dll: ${K_FILES} Kethane-LICENSE.txt
 	${CSC} ${CSCFLAGS} ${SYSTEM} ${KSP} ${UNITY} \
 		-lib:../../../GeodesicGrid/bin -r:GeodesicGrid.dll \
+		-lib:../Particles -r:KethaneParticles.dll \
 		-resource:Kethane-LICENSE.txt,Kethane.Kethane-LICENSE.txt \
 		-out:$@ ${K_FILES}
 

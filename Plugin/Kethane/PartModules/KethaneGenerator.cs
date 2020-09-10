@@ -76,7 +76,6 @@ namespace Kethane.PartModules
             }
 
             exhaustEmitter = part.Modules.OfType<KethaneParticleEmitter>().First(e => e.Label == "exhaust");
-            exhaustEmitter.Setup();
         }
 
         public override void OnUpdate()
@@ -85,8 +84,8 @@ namespace Kethane.PartModules
             Events["Disable"].active = Enabled;
 
             exhaustEmitter.Emit = Output > 0;
-            exhaustEmitter.MaxEmission = (float)(MaxEmission * Output);
-            exhaustEmitter.MinEmission = (float)(MinEmission * Output);
+            //XXX exhaustEmitter.MaxEmission = (float)(MaxEmission * Output);
+            //XXX exhaustEmitter.MinEmission = (float)(MinEmission * Output);
 
             foreach (var state in fanStates)
             {

@@ -13,7 +13,7 @@ ZIP		:= zip
 
 .PHONY: all clean info install
 
-SUBDIRS=AssetBundles Parts Plugin/Kethane
+SUBDIRS=AssetBundles Parts Plugin/Particles Plugin/Kethane
 
 all clean:
 	@for dir in ${SUBDIRS}; do \
