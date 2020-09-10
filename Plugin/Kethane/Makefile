@@ -4,7 +4,7 @@ GAMEDATA	:= ${KSPDIR}/GameData
 KGAMEDATA  := ${GAMEDATA}/Kethane
 PLUGINDIR	:= ${KGAMEDATA}/Plugins
 
-TARGETS		:= bin/Kethane.dll
+TARGETS		:= Kethane.dll
 
 K_FILES := \
 	BodyResourceData.cs	\
@@ -58,9 +58,8 @@ K_FILES := \
 	$e
 
 RESGEN2		:= resgen2
-MCS		:= mcs
-#MCSFLAGS	:= -optimize -debug -warnaserror
-MCSFLAGS	:= -optimize -debug
+CSC			:= csc
+CSCFLAGS	:= -highentropyva- -noconfig -nostdlib+ -t:library -optimize -debug -warnaserror+
 GIT			:= git
 TAR			:= tar
 ZIP			:= zip
@@ -75,39 +74,48 @@ version:
 info:
 	@echo "Kethane Build Information"
 	@echo "    resgen2:    ${RESGEN2}"
-	@echo "    gmcs:       ${MCS}"
-	@echo "    gmcs flags: ${MCSFLAGS}"
+	@echo "    gmcs:       ${CSC}"
+	@echo "    gmcs flags: ${CSCFLAGS}"
 	@echo "    git:        ${GIT}"
 	@echo "    tar:        ${TAR}"
 	@echo "    zip:        ${ZIP}"
 	@echo "    KSP Data:   ${KSPDIR}"
 
-bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt
-	@mkdir -p bin
-	${MCS} ${MCSFLAGS} -t:library -lib:"${MANAGED}" \
-		-r:Assembly-CSharp,Assembly-CSharp-firstpass \
-		-r:KSPAssets \
-		-r:UnityEngine \
-		-r:UnityEngine.UI \
-		-r:UnityEngine.CoreModule \
-		-r:UnityEngine.AnimationModule \
-		-r:UnityEngine.PhysicsModule \
-		-r:UnityEngine.IMGUIModule \
-		-r:UnityEngine.AudioModule \
-		-r:UnityEngine.ParticleSystemModule \
-		-r:UnityEngine.TextRenderingModule \
-		-r:UnityEngine.InputLegacyModule \
-		-r:UnityEngine.UnityWebRequestWWWModule \
-		-r:UnityEngine.UnityWebRequestModule \
-		-r:UnityEngine.AssetBundleModule \
-		-lib:../../../GeodesicGrid/bin \
-		-r:GeodesicGrid \
+SYSTEM := \
+	-lib:${MANAGED} \
+	-r:${MANAGED}/mscorlib.dll \
+	-r:${MANAGED}/System.dll \
+	-r:${MANAGED}/System.Core.dll
+
+KSP := \
+	-r:Assembly-CSharp.dll \
+	-r:Assembly-CSharp-firstpass.dll \
+	-r:KSPAssets.dll
+
+UNITY := \
+	-r:UnityEngine.dll \
+	-r:UnityEngine.UI.dll \
+	-r:UnityEngine.CoreModule.dll \
+	-r:UnityEngine.AnimationModule.dll \
+	-r:UnityEngine.PhysicsModule.dll \
+	-r:UnityEngine.IMGUIModule.dll \
+	-r:UnityEngine.AudioModule.dll \
+	-r:UnityEngine.ParticleSystemModule.dll \
+	-r:UnityEngine.TextRenderingModule.dll \
+	-r:UnityEngine.InputLegacyModule.dll \
+	-r:UnityEngine.UnityWebRequestWWWModule.dll \
+	-r:UnityEngine.UnityWebRequestModule.dll \
+	-r:UnityEngine.AssetBundleModule.dll \
+	$e
+
+Kethane.dll: ${K_FILES} Kethane-LICENSE.txt
+	${CSC} ${CSCFLAGS} ${SYSTEM} ${KSP} ${UNITY} \
+		-lib:../../../GeodesicGrid/bin -r:GeodesicGrid.dll \
 		-resource:Kethane-LICENSE.txt,Kethane.Kethane-LICENSE.txt \
 		-out:$@ ${K_FILES}
 
 clean:
-	rm -f ${TARGETS} assembly/AssemblyInfo.cs bin/Kethane.version
-	test -d bin && rmdir bin || true
+	rm -f ${TARGETS}
 
 install: all
 	mkdir -p "${PLUGINDIR}"
